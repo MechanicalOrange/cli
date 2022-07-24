@@ -14,7 +14,6 @@
   "dependencies": {
     "@hashgraph/sdk": "^2.16.6",
     "commander": "^9.3.0",
-    "dotenv": "^16.0.1",
-    "shelljs": "^0.8.5"
+    "dotenv": "^16.0.1"
   }
 }
