@@ -40,7 +40,7 @@ function setOperator(network) {
 
     let client = null;
     if (network === "main") {
-        throw new Error("Mainnet not supported!");
+      client = Client.forMainnet();
     }
     else if (network === "test") {
       client = Client.forTestnet();
