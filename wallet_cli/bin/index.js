@@ -38,15 +38,15 @@ cl = console.log
 program
   .command('create-account')
   .addOption(new program.Option('-a, --amount <hbar>', "Initial amount of hbar in account.")
-    .argParser(util.hbarParseFloat)) 
+    .argParser(util.hbarParseFloat).default(1)) 
   .addOption(new program.Option('-m, --memo <memo>', "Memo of the account.")
-    .argParser(util.memoParseString)) 
+    .argParser(util.memoParseString).default("")) 
   .addOption(new program.Option('-s, --assoc <number-associations>', "Number of token associated with this account.")
-    .argParser(util.assocParseInt))  
+    .argParser(util.assocParseInt).default(0))  
   .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
-    .argParser(util.assocParseInt))  
+    .argParser(util.hbarParseFloat).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
-    .choices(['main', 'test']))
+    .choices(['main', 'test']).makeOptionMandatory())
   .description('Create an account. Account can have an initial amount of hbar, a memo, and a number of token associations. Account is created on testnet or mainnet.')
   .action(async (args) => {
 
@@ -59,11 +59,11 @@ program
 program
   .command('transfer-hbar')
   .addOption(new program.Option('-a, --amount <hbar>', "Amount of hbar to be transferred.")
-    .argParser(util.hbarParseFloat)) 
+    .argParser(util.hbarParseFloat).makeOptionMandatory()) 
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString)) 
+    .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
-    .choices(['main', 'test']))
+    .choices(['main', 'test']).makeOptionMandatory())
   .description('Transfer hbar to another account.')
   .action(async (args) => {
 
@@ -77,9 +77,9 @@ program
 program
   .command('get-balance')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString)) 
+    .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
-    .choices(['main', 'test']))
+    .choices(['main', 'test']).makeOptionMandatory())
   .description('Get the account balance.')
   .action(async (args) => {
 
@@ -91,9 +91,9 @@ program
 program
   .command('get-account-info')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString)) 
+    .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
-    .choices(['main', 'test']))
+    .choices(['main', 'test']).makeOptionMandatory())
   .description('Get the account info in primary form.')
   .action(async (args) => {
 
