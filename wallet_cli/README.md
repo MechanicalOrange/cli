@@ -11,7 +11,7 @@ Hedera Command Line Interface (CLI) wallet is a basic, free (like in free beer),
 
 ## Installation
 
-Now the wallet can be installed as any nodejs program:
+The wallet is installed as any nodejs program:
 
 ```bash
 > cd hedera_cli-main
@@ -40,7 +40,7 @@ e.g.
 > wallet transfer-hbar -h
 ```
 
-Examples of comamnds:
+Examples of comands:
 ```bash
 > wallet transfer-hbar --amount 2 --account-id 0.0.477 --network test
 > wallet get-balance --account-id 0.0.477 --network test
