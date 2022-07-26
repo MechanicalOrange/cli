@@ -40,7 +40,7 @@ e.g.
 > wallet transfer-hbar -h
 ```
 
-Examples of comands:
+Examples of commands:
 ```bash
 > wallet transfer-hbar --amount 2 --account-id 0.0.477 --network test
 > wallet get-balance --account-id 0.0.477 --network test
