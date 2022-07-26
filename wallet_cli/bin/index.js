@@ -66,12 +66,11 @@ program
     .choices(['main', 'test']).makeOptionMandatory())
   .description('Transfer hbar to another account.')
   .action(async (args) => {
+    const status = await mapi.transferCrypto (args.accountId, args.amount, args.network)
+    const resultAsString = status === "SUCCESS" ? "was done successfully!" : "FAILED!"
+    console.log(`The transfer of ${args.amount} hbars to account ${args.accountId} ${resultAsString}`) 
 
-      const status = await mapi.transferCrypto (args.accountId, args.amount, args.network)
-
-      const resultAsString = status === "SUCCESS" ? "was done successfully!" : "FAILED!"
-      console.log(`The transfer of ${args.amount} hbars to account ${args.accountId} ${resultAsString}`) 
-      process.exit(0)
+    process.exit(0)
   })
 
 program
@@ -82,10 +81,10 @@ program
     .choices(['main', 'test']).makeOptionMandatory())
   .description('Get the account balance.')
   .action(async (args) => {
+    const hbar = await mapi.getAccountBalance(args.accountId, args.network)
+    cl(`The account ${args.accountId} has ${hbar.toNumber()} hbars.`)
 
-      const hbar = await mapi.getAccountBalance(args.accountId, args.network)
-      cl(`The account ${args.accountId} has ${hbar.toNumber()} hbars.`)
-      process.exit(0)
+    process.exit(0)
   })
 
 program
@@ -96,13 +95,10 @@ program
     .choices(['main', 'test']).makeOptionMandatory())
   .description('Get the account info in primary form.')
   .action(async (args) => {
+    const accInfo = await mapi.getAccountInfo(args.accountId, args.network)
+    cl(accInfo)
 
-      cl(args.accountId)
-      cl(args.network)
-
-      const accInfo = await mapi.getAccountInfo(args.accountId, args.network)
-      cl(accInfo)
-      process.exit(0)
+    process.exit(0)
   })
 
 

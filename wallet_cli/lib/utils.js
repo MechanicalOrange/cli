@@ -25,59 +25,58 @@ SOFTWARE.
 
 
 function accntParseString(value) {
-  const words = value.split('.');
+  const words = value.split('.')
   if (words.length !== 3) {
-    throw new program.InvalidArgumentError(`Account cannot have more than 3 fields or it is not of the form x.y.z`);
+    throw new program.InvalidArgumentError(`Account cannot have more than 3 fields or it is not of the form x.y.z`)
   }
   for (word in words) {
-    const num = parseInt(words[0]);
+    const num = parseInt(words[0])
     if (isNaN(num)) {
-      throw new program.InvalidArgumentError('The field is not a number. The account must be of form x.y.z, where x,y,z are numbers.');
+      throw new program.InvalidArgumentError('The field is not a number. The account must be of form x.y.z, where x,y,z are numbers.')
     }
   }
-  return value;
+  return value
 }
 
 function assocParseInt(value) {
-  // parseInt takes a string and a radix
-  const parsedValue = parseInt(value, 10);
+  const parsedValue = parseInt(value, 10)
   if (isNaN(parsedValue)) {
-    throw new program.InvalidArgumentError('Not a number.');
+    throw new program.InvalidArgumentError('Not a number.')
   }
   else if( parsedValue < 0) {
-    throw new program.InvalidArgumentError('Negative number. It must be positive.');
+    throw new program.InvalidArgumentError('Negative number. It must be positive.')
   }
   else if( parsedValue > 1000) {
-    const kMaxAssociations = 1000;
-    throw new program.InvalidArgumentError(`Too big. up to ${kMaxAssociations} are allowed.`);
+    const kMaxAssociations = 1000
+    throw new program.InvalidArgumentError(`Too big. up to ${kMaxAssociations} are allowed.`)
   }
-  return parsedValue;
+  return parsedValue
 }
 
 function hbarParseFloat(value) {
-  const parsedValue = parseFloat(value);
+  const parsedValue = parseFloat(value)
   if (isNaN(parsedValue)) {
-    throw new program.InvalidArgumentError('Not a number.');
+    throw new program.InvalidArgumentError('Not a number.')
   }
   else if( parsedValue < 0) {
-    throw new program.InvalidArgumentError('Negative number. It must be positive.');
+    throw new program.InvalidArgumentError('Negative number. It must be positive.')
   }
-  return parsedValue;
+  return parsedValue
 }
 
 function memoParseString(value) {
-  const kMaxMemoLengh    = 100 ;
+  const kMaxMemoLengh    = 100 
   if (value.length > kMaxMemoLengh) {
-    throw new program.InvalidArgumentError(`Memo cannot be more than ${kMaxMemoLengh} chars.`);
+    throw new program.InvalidArgumentError(`Memo cannot be more than ${kMaxMemoLengh} chars.`)
   }
-  return value;
+  return value
 }
 
 
-exports.accntParseString = accntParseString;
-exports.assocParseInt    = assocParseInt   ;
-exports.hbarParseFloat   = hbarParseFloat  ;
-exports.memoParseString  = memoParseString ;
+exports.accntParseString = accntParseString
+exports.assocParseInt    = assocParseInt   
+exports.hbarParseFloat   = hbarParseFloat  
+exports.memoParseString  = memoParseString 
 
 
 
