@@ -28,12 +28,12 @@ Note: the github repo will contain a .env file that contains a valid testnet acc
 The wallet can be tested with:
 
 ```bash
->wallet -h
+> wallet -h
 ```
 
 To get help for a given command, use:
 ```bash
->wallet <command_name> -h
+> wallet <command_name> -h
 ```
 e.g.
 ```bash
