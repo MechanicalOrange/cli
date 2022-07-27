@@ -1,12 +1,13 @@
 # CLI wallet 
 
-Hedera Command Line Interface (CLI) wallet is a basic, free (like in free beer), open-source program that enables the following services on Hedera Hashgraph testnet and mainnet networks:
+Hedera Command Line Interface (CLI) wallet is a basic, open-source program that enables the following services on Hedera Hashgraph testnet and mainnet networks:
  * account creation
  * transfer of hbar to any account
  * getting the balance of any account
  * getting the info of any account (primary form for now)
  * staking (coming soon)
  * support of multiple accounts
+ * free (only Hedera fees if mainnet is used)
 
 
 ## Installation
