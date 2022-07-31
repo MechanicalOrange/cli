@@ -26,7 +26,7 @@ const { Client, PrivateKey, AccountCreateTransaction, AccountInfoQuery, AccountB
 require("dotenv").config()
 
 
-function setOperator(network) {
+const setOperator = (network) => {
     const accountId = process.env.ACCOUNT_ID
     const privateKey = process.env.PRIVATE_KEY
 
@@ -59,30 +59,26 @@ const createAccount = async (hbarAmount, memo, maxAssoc, maxFee, network) => {
   
   const transactionReceipt = await transactionResponse.getReceipt(client)
   const newAccountId = transactionReceipt.accountId
-  
+  const transactionStatus = transactionReceipt.status.toString()
+
   const newAccountIdAsString = `${newAccountId.shard}.${newAccountId.realm}.${newAccountId.num}`
   const publicKeyAsString  = privateKey.publicKey.toString()
   const privateKeyAsString = privateKey.toString()
   
   const newAccount = {
     accountId        : newAccountIdAsString,
-    balance          : hbarAmount          ,
     publicKey        : publicKeyAsString   , 
-    ED25519PublicKey : privateKey.publicKey,
     privateKey       : privateKeyAsString  ,
-    ED25519PrivateKey: privateKey
+  }
+
+  const result = {
+    newAccount,
+    transactionStatus
   }
   
-  return newAccount
+  return result 
 }
 
-const getAccountInfo = async (accountId, network) => {
-  const client = setOperator(network)
-  const query = new AccountInfoQuery().setAccountId(accountId)
-  const accountInfo = await query.execute(client)
-
-  return accountInfo
-}
 
 const getAccountBalance = async (accountId, network) => {
   const client = setOperator(network)
@@ -104,14 +100,25 @@ const transferCrypto = async (receiverAccntId, amountHbar, network) =>  {
   
   //Verify the transaction reached consensus
   const transactionReceipt = await transferTransactionResponse.getReceipt(client)
-  return transactionReceipt.status.toString() 
 
+  const transactionStatus = transactionReceipt.status.toString()
+  return transactionStatus
 }
 
 
 exports.setOperator       = setOperator
 exports.createAccount     = createAccount
-exports.getAccountInfo    = getAccountInfo
 exports.getAccountBalance = getAccountBalance
 exports.transferCrypto    = transferCrypto
+
+/*
+exports.getAccountInfo    = getAccountInfo
+const getAccountInfo = async (accountId, network) => {
+  const client = setOperator(network)
+  const query = new AccountInfoQuery().setAccountId(accountId)
+  const accountInfo = await query.execute(client)
+
+  return accountInfo
+}
+*/
 

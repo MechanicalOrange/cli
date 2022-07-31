@@ -4,10 +4,8 @@ Hedera Command Line Interface (CLI) wallet is a basic, open-source program that 
  * account creation
  * transfer of hbar to any account
  * getting the balance of any account
- * getting the info of any account (primary form for now)
  * staking (coming soon)
  * support of multiple accounts
- * free (only Hedera fees if mainnet is used)
 
 
 ## Installation
@@ -24,7 +22,7 @@ The wallet is installed as any nodejs program:
 ## Usage
 Before using the wallet, update the .env file present in the wallet_cli directory with the account credentials of the testnet or mainnet that is needed. 
 
-Note: the github repo will contain a .env file that contains a valid testnet account, however, this account will be removed once the testnet is upgraded or it cannot be used if there is not enough hbars in it.
+Note: the github repo contains a .env file that has a valid testnet account.
  
 The wallet can be tested with:
 

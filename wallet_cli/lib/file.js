@@ -27,7 +27,7 @@ const os   = require('os')
 const path = require('path')
 
 
-const writeFile = (account) => {
+const writeFileAccount = (account) => {
   const filePath = path.resolve(os.homedir(), account.accountId)
   
   let accountInfo = "ACCOUNT_ID="  + account.accountId  +"\n"
@@ -41,10 +41,10 @@ const writeFile = (account) => {
     }
   })
   console.log(`The new account id and keys were successfully saved in ${filePath}!`)
-  console.log("Please keep this file save!")
+  console.log("Please keep this file safe!")
 }
 
 
-exports.writeFile = writeFile
+exports.writeFileAccount = writeFileAccount
 
 

@@ -50,10 +50,16 @@ program
   .description('Create an account. Account can have an initial amount of hbar, a memo, and a number of token associations. Account is created on testnet or mainnet.')
   .action(async (args) => {
 
-    const newAccount = await mapi.createAccount(args.amount, args.memo, args.assoc, args.maxFee, args.network)
-    file.writeFile(newAccount)
-    process.exit(0)
+    const result = await mapi.createAccount(args.amount, args.memo, args.assoc, args.maxFee, args.network)
 
+    if (result.transactionStatus === "SUCCESS") {
+      file.writeFileAccount(result.newAccount)
+    }
+    else {
+      console.error("ERROR! No account was created!")
+    }
+
+    process.exit(0)
   })
 
 program
@@ -87,6 +93,7 @@ program
     process.exit(0)
   })
 
+/*
 program
   .command('get-account-info')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
@@ -100,7 +107,7 @@ program
 
     process.exit(0)
   })
-
+*/
 
 program.parse(process.argv)
 

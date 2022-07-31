@@ -24,7 +24,7 @@ SOFTWARE.
 
 
 
-function accntParseString(value) {
+const accntParseString = (value) => {
   const words = value.split('.')
   if (words.length !== 3) {
     throw new program.InvalidArgumentError(`Account cannot have more than 3 fields or it is not of the form x.y.z`)
@@ -38,7 +38,7 @@ function accntParseString(value) {
   return value
 }
 
-function assocParseInt(value) {
+const assocParseInt = (value) => {
   const parsedValue = parseInt(value, 10)
   if (isNaN(parsedValue)) {
     throw new program.InvalidArgumentError('Not a number.')
@@ -53,7 +53,7 @@ function assocParseInt(value) {
   return parsedValue
 }
 
-function hbarParseFloat(value) {
+const hbarParseFloat = (value) => {
   const parsedValue = parseFloat(value)
   if (isNaN(parsedValue)) {
     throw new program.InvalidArgumentError('Not a number.')
@@ -64,7 +64,7 @@ function hbarParseFloat(value) {
   return parsedValue
 }
 
-function memoParseString(value) {
+const memoParseString = (value) => {
   const kMaxMemoLengh    = 100 
   if (value.length > kMaxMemoLengh) {
     throw new program.InvalidArgumentError(`Memo cannot be more than ${kMaxMemoLengh} chars.`)
