@@ -40,7 +40,7 @@ const writeFileAccount = (account) => {
       process.exit(1)
     }
   })
-  console.log(`The new account id and keys were successfully saved in ${filePath}!`)
+  console.log(`The new account id and keys were successfully saved in ${filePath}`)
   console.log("Please keep this file safe!")
 }
 

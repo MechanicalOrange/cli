@@ -22,87 +22,111 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const { Client, PrivateKey, AccountCreateTransaction, AccountInfoQuery, AccountBalanceQuery, TransferTransaction, Hbar} = require("@hashgraph/sdk")
+const { Client, PrivateKey, AccountCreateTransaction, AccountDeleteTransaction, AccountInfoQuery, AccountBalanceQuery, TransferTransaction, Hbar} = require("@hashgraph/sdk")
 require("dotenv").config()
 
 
 const setOperator = (network) => {
+  try {
     const accountId = process.env.ACCOUNT_ID
     const privateKey = process.env.PRIVATE_KEY
 
     if (accountId == null || privateKey == null ) {
-        throw new Error("Environment variables accountId and privateKey must be present")
+      console.error("Error! Environment variables accountId and privateKey must be present in .env file!")
+      process.exit(1)
     }
 
-    let client = null
+    let operator = null
     if (network === "main") {
-      client = Client.forMainnet()
+      operator = Client.forMainnet()
     }
     else if (network === "test") {
-      client = Client.forTestnet()
+      operator = Client.forTestnet()
     }
-    client.setOperator(accountId, privateKey)
-    return client
+    operator.setOperator(accountId, privateKey)
+    return operator
+  }
+  catch(error) {
+    console.error("Error! Hedera service failed to set the operator!")
+    process.exit(1)
+  }
 }
 
+
 const createAccount = async (hbarAmount, memo, maxAssoc, maxFee, network) => {
-  const client = setOperator(network) 
-  
-  const privateKey = await PrivateKey.generate()
-  const transactionResponse = await new AccountCreateTransaction()
-    .setKey(privateKey.publicKey)
-    .setMaxTransactionFee(new Hbar(maxFee))
-    .setInitialBalance(new Hbar(hbarAmount)) // value in hbars
-    .setAccountMemo(memo)
-    .setMaxAutomaticTokenAssociations(maxAssoc)
-    .execute(client)
-  
-  const transactionReceipt = await transactionResponse.getReceipt(client)
-  const newAccountId = transactionReceipt.accountId
-  const transactionStatus = transactionReceipt.status.toString()
+  try {
+    const operator = setOperator(network) 
+    
+    const privateKey = await PrivateKey.generate()
+    const transactionCreateResponse = await new AccountCreateTransaction()
+      .setKey(privateKey.publicKey)
+      .setMaxTransactionFee(new Hbar(maxFee))
+      .setInitialBalance(new Hbar(hbarAmount)) // value in hbars
+      .setAccountMemo(memo)
+      .setMaxAutomaticTokenAssociations(maxAssoc)
+      .execute(operator)
+    
+    const transactionReceipt = await transactionCreateResponse.getReceipt(operator)
+    const newAccountId = transactionReceipt.accountId
+    const transactionStatus = transactionReceipt.status.toString()
 
-  const newAccountIdAsString = `${newAccountId.shard}.${newAccountId.realm}.${newAccountId.num}`
-  const publicKeyAsString  = privateKey.publicKey.toString()
-  const privateKeyAsString = privateKey.toString()
-  
-  const newAccount = {
-    accountId        : newAccountIdAsString,
-    publicKey        : publicKeyAsString   , 
-    privateKey       : privateKeyAsString  ,
+    const newAccountIdAsString = `${newAccountId.shard}.${newAccountId.realm}.${newAccountId.num}`
+    const publicKeyAsString  = privateKey.publicKey.toString()
+    const privateKeyAsString = privateKey.toString()
+    
+    const newAccount = {
+      accountId        : newAccountIdAsString,
+      publicKey        : publicKeyAsString   , 
+      privateKey       : privateKeyAsString  ,
+    }
+
+    const result = {
+      newAccount,
+      transactionStatus
+    }
+    return result 
+  }
+  catch(error) {
+    console.error(`Error! Hedera service AccountCreateTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
   }
 
-  const result = {
-    newAccount,
-    transactionStatus
-  }
-  
-  return result 
 }
 
 
 const getAccountBalance = async (accountId, network) => {
-  const client = setOperator(network)
-  const accountBalance = await new AccountBalanceQuery()
-    .setAccountId(accountId)
-    .execute(client)
-  
-  return accountBalance.hbars.toBigNumber()
+  try {
+    const operator = setOperator(network)
+    const accountBalance = await new AccountBalanceQuery()
+      .setAccountId(accountId)
+      .execute(operator)
+    
+    return accountBalance.hbars.toBigNumber()
+  }
+  catch(error) {
+    console.error(`Error! Hedera service AccountBalanceQuery failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
 }
 
 
 const transferCrypto = async (receiverAccntId, amountHbar, network) =>  {
-  const accountId = process.env.ACCOUNT_ID
-  const client = setOperator(network)
-  const transferTransactionResponse = await new TransferTransaction()
-    .addHbarTransfer(accountId  , new Hbar(-amountHbar))
-    .addHbarTransfer(receiverAccntId, new Hbar(+amountHbar))
-    .execute(client)
-  
-  //Verify the transaction reached consensus
-  const transactionReceipt = await transferTransactionResponse.getReceipt(client)
-
-  const transactionStatus = transactionReceipt.status.toString()
-  return transactionStatus
+  try {
+    const accountId = process.env.ACCOUNT_ID
+    const operator = setOperator(network)
+    const transferTransactionResponse = await new TransferTransaction()
+      .addHbarTransfer(accountId  , new Hbar(-amountHbar))
+      .addHbarTransfer(receiverAccntId, new Hbar(+amountHbar))
+      .execute(operator)
+    
+    const transactionReceipt = await transferTransactionResponse.getReceipt(operator)
+    const transactionStatus = transactionReceipt.status.toString()
+    return transactionStatus
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TransferTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
 }
 
 
@@ -114,11 +138,39 @@ exports.transferCrypto    = transferCrypto
 /*
 exports.getAccountInfo    = getAccountInfo
 const getAccountInfo = async (accountId, network) => {
-  const client = setOperator(network)
+  const operator = setOperator(network)
   const query = new AccountInfoQuery().setAccountId(accountId)
-  const accountInfo = await query.execute(client)
+  const accountInfo = await query.execute(operator)
 
   return accountInfo
+}
+
+exports.deleteAccount     = deleteAccount 
+const deleteAccount = async (accountId, network) => {
+  try {
+    const operator = setOperator(network) 
+    //const accountIdWhereToTransferBalance = process.env.ACCOUNT_ID
+    const accountIdWhereToTransferBalance = "0.0.47853934"
+
+    const transactionDelete = await new AccountDeleteTransaction()
+      .setAccountId(accountId)
+      .setTransferAccountId(accountIdWhereToTransferBalance)
+      .freezeWith(operator)
+
+    const privateKey = PrivateKey.fromString(process.env.PRIVATE_KEY)
+    const transactionDeleteSigned = await transactionDelete.sign(privateKey)
+    const transactionResponse = await transactionDeleteSigned.execute(operator)
+
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
+    const transactionStatus   = transactionReceipt.status.toString()
+
+    return transactionStatus
+  }
+  catch(error) {
+    console.error(error)
+    console.error(`Error! Hedera service TopicDeleteTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
 }
 */
 

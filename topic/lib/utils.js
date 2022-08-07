@@ -39,6 +39,7 @@ const accntParseString = (value) => {
   return value
 }
 
+
 const memoParseString = (value) => {
   const kMaxMemoLengh    = 100 
   if (value.length > kMaxMemoLengh) {
@@ -48,43 +49,19 @@ const memoParseString = (value) => {
   return value
 }
 
-const assocParseInt = (value) => {
-  const parsedValue = parseInt(value, 10)
-  if (isNaN(parsedValue)) {
-    console.error("Error! Not a number ")
+const messageParseString = (value) => {
+  if (Object.prototype.toString.call(value) === '[object String]') {
+    return value
+  }
+  else {
+    console.error(`Error! ${value} is not a string!!`)
     process.exit(1)
   }
-  else if( parsedValue < 0) {
-    console.error("Error! It must be a positive number ")
-    process.exit(1)
-  }
-  else if( parsedValue > 1000) {
-    const kMaxAssociations = 1000
-    console.error(`Error! Maximum number of token associations  is ${kMaxAssociations}!`)
-    process.exit(1)
-  }
-  return parsedValue
 }
 
-const hbarParseFloat = (value) => {
-  const parsedValue = parseFloat(value)
-  if (isNaN(parsedValue)) {
-    console.error("Error! Not a number ")
-    process.exit(1)
-  }
-  else if( parsedValue < 0) {
-    console.error("Error! It must be a positive number ")
-    process.exit(1)
-  }
-  return parsedValue
-}
-
-
-
-exports.accntParseString = accntParseString
-exports.assocParseInt    = assocParseInt   
-exports.hbarParseFloat   = hbarParseFloat  
-exports.memoParseString  = memoParseString 
+exports.accntParseString   = accntParseString
+exports.memoParseString    = memoParseString 
+exports.messageParseString = messageParseString
 
 
 

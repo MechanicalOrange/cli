@@ -32,7 +32,11 @@ const file    = require('../lib/file')
 const util    = require('../lib/utils')
 
 
-program.version(pckg.version)
+program
+  .name("wallet")
+  .description("Hedera wallet.")
+  .version(pckg.version)
+
 cl = console.log
 
 program
@@ -50,17 +54,23 @@ program
   .description('Create an account. Account can have an initial amount of hbar, a memo, and a number of token associations. Account is created on testnet or mainnet.')
   .action(async (args) => {
 
+    console.log(`Creating an account`) 
     const result = await mapi.createAccount(args.amount, args.memo, args.assoc, args.maxFee, args.network)
 
+    let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {
       file.writeFileAccount(result.newAccount)
+      exitStatus = 0 
     }
     else {
       console.error("ERROR! No account was created!")
+      exitStatus = 1 
     }
-
-    process.exit(0)
+    process.exit(exitStatus)
   })
+
+
+
 
 program
   .command('transfer-hbar')
@@ -72,12 +82,22 @@ program
     .choices(['main', 'test']).makeOptionMandatory())
   .description('Transfer hbar to another account.')
   .action(async (args) => {
-    const status = await mapi.transferCrypto (args.accountId, args.amount, args.network)
-    const resultAsString = status === "SUCCESS" ? "was done successfully!" : "FAILED!"
-    console.log(`The transfer of ${args.amount} hbars to account ${args.accountId} ${resultAsString}`) 
 
-    process.exit(0)
+    console.log(`Transferring ${args.amount} of hbar to ${args.accountId}`) 
+    const status = await mapi.transferCrypto (args.accountId, args.amount, args.network)
+
+    let exitStatus = null
+    if (status === "SUCCESS") {
+      console.log(`Transfer was done successfully!`) 
+      exitStatus = 0
+    }
+    else {
+      console.error(`Error! Transfer failed!`) 
+      exitStatus = 1
+    }
+    process.exit(exitStatus)
   })
+
 
 program
   .command('get-balance')
@@ -106,6 +126,33 @@ program
     cl(accInfo)
 
     process.exit(0)
+  })
+
+
+program
+  .command('delete-account')
+  .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
+    .choices(['main', 'test']).makeOptionMandatory())
+  .description('Delete the account with the id account-id.')
+  .action(async (args) => {
+
+    console.log(`Deleting the account ${args.accountId} `) 
+    const status = await mapi.deleteAccount(args.accountId, args.network)
+
+    let exitStatus = null
+
+    if (status === "SUCCESS") {
+      console.log(`The deletion of ${args.accountId} was done successfully!`) 
+      exitStatus = 0
+    }
+    else {
+      console.error(`The deletion of ${args.accountId} failed!`) 
+      exitStatus = 1
+    }
+
+    process.exit(exitStatus)
   })
 */
 
