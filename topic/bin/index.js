@@ -38,12 +38,12 @@ program
   .version(pckg.version)
 
 program
-  .command('create')
-  .addOption(new program.Option('-m, --memo [memo]', "Memo of the topic.")
+  .command('create-topic')
+  .addOption(new program.Option('-m, --memo [memo]', 'Memo of the topic. Default value is empty string "".')
     .argParser(util.memoParseString).default("")) 
-  .addOption(new program.Option('-a, --use-admin-key [yes/no]', 'Use admin Key. If not used, the topic can never be deleted. The admin key is the private key from the .env file.')
+  .addOption(new program.Option('-a, --use-admin-key [yes/no]', 'Use admin Key. If not used, the topic can never be deleted. The admin key is the private key from the .env file. Default value is "no".')
     .choices(['yes', 'no']).default("no"))
-  .addOption(new program.Option('-s, --use-submit-key [yes/no]', 'Use submit Key. If not used, acny account can send message to the topic. The submit key is the private key from the .env file.')
+  .addOption(new program.Option('-s, --use-submit-key [yes/no]', 'Use submit Key. If not used, acny account can send message to the topic. The submit key is the private key from the .env file. Default value is "no"')
     .choices(['yes', 'no']).default("no"))
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -67,7 +67,7 @@ program
 
 
 program
-  .command('delete')
+  .command('delete-topic')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
@@ -95,9 +95,9 @@ program
 
 program
   .command('send-message')
-  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
+  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', 'The account Id.')
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-m, --message <message>', "Message sent. Use quotes for multiple words.")
+  .addOption(new program.Option('-m, --message <message>', 'Message sent. Use quotes for multiple words. Default value is empty string "".')
     .argParser(util.messageParseString).default("")) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -151,11 +151,11 @@ program
 
 program
   .command('send-signature')
-  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
+  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', 'The account Id.')
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-m, --memo <memo>', "Memo of the timestamp.")
+  .addOption(new program.Option('-m, --memo <memo>', 'Memo of the timestamp. Default value is empty string "".')
     .argParser(util.messageParseString).default("")) 
-  .addOption(new program.Option('-f, --file <path-to-file> ', "File sent.")
+  .addOption(new program.Option('-f, --file <path-to-file> ', 'File sent that has the signature computed and sent to the network.')
     .argParser(util.messageParseString).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
