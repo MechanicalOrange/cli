@@ -30,8 +30,9 @@ const path = require('path')
 const writeFileTopic = (topic) => {
   const filePath = path.resolve(os.homedir(), topic.topicId)
   
-  let accountInfo = "TOPIC_ID="                 + topic.topicId            +"\n"
-  accountInfo    += "ACCOUNT_ID_FOR_ADMIN_KEY=" + topic.accountId4AdminKey +"\n"
+  let accountInfo = "TOPIC_ID="                  + topic.topicId             +"\n"
+  accountInfo    += "ACCOUNT_ID_FOR_ADMIN_KEY="  + topic.accountId4AdminKey  +"\n"
+  accountInfo    += "ACCOUNT_ID_FOR_SUBMIT_KEY=" + topic.accountId4SubmitKey +"\n"
 
   fs.writeFileSync(filePath, accountInfo, error => {
     if (error) {

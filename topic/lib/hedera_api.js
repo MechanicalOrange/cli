@@ -23,13 +23,14 @@ SOFTWARE.
 */
 
 
-const { Client, PrivateKey, TopicCreateTransaction, TopicDeleteTransaction, TopicMessageSubmitTransaction} = require("@hashgraph/sdk")
-require("dotenv").config()
+const { Client, PrivateKey, TopicCreateTransaction, TopicUpdateTransaction, TopicDeleteTransaction, TopicMessageSubmitTransaction, TopicInfoQuery} = require("@hashgraph/sdk")
+const cred = require('../../common/credentials')
 
-const setOperator = (network) => {
+const setOperator = (network, credFile) => {
   try {
-    const accountId = process.env.ACCOUNT_ID
-    const privateKey = process.env.PRIVATE_KEY
+    const credentials = cred.readFileCredentials(credFile)
+    const accountId  = credentials.accountId
+    const privateKey = credentials.privateKey
 
     if (accountId == null || privateKey == null ) {
       console.error("Error! Environment variables accountId and privateKey must be present in .env file!")
@@ -53,33 +54,39 @@ const setOperator = (network) => {
 }
 
 
-const createTopic = async (memo, useAdminKey, useSubmitKey, network) => {
+const createTopic = async (memo, adminCredFile, submitCredFile, network, credFile) => {
   try {
-    const operator = setOperator(network) 
+    const operator = setOperator(network, credFile) 
 
-    const privateKey = PrivateKey.fromString(process.env.PRIVATE_KEY )
+    let adminAccountId  = "none" 
+    let submitAccountId = "none" 
 
     const transactionTopic = await new TopicCreateTransaction()
       .setTopicMemo(memo)
 
-    if (useAdminKey === "yes") {
-      transactionTopic.setAdminKey(privateKey)
+    if (adminCredFile !== null) {
+      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      adminAccountId  = adminCredentials.accountId 
+      const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
+      transactionTopic.setAdminKey(adminKey)
     }
 
-    if (useSubmitKey === "yes") {
-      transactionTopic.setSubmitKey(privateKey)
+    if (submitCredFile !== null) {
+      const submitCredentials = cred.readFileCredentials(submitCredFile)
+      submitAccountId  = submitCredentials.accountId 
+      const submitKey = PrivateKey.fromString(submitCredentials.privateKey)
+      transactionTopic.setSubmitKey(submitKey)
     }
     const transactionResponse = await transactionTopic.execute(operator)
-    const transactionReceipt  = await transactionResponse.getReceipt(operator)
 
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus = transactionReceipt.status.toString()
     const topicIdAsString   = transactionReceipt.topicId.toString()
 
-
-    const accountId = process.env.ACCOUNT_ID
     const newTopic = 
-      { topicId           : topicIdAsString,
-        accountId4AdminKey: accountId 
+      { topicId            : topicIdAsString,
+        accountId4AdminKey : adminAccountId ,
+        accountId4SubmitKey: submitAccountId 
       }
 
     const result = {
@@ -92,18 +99,18 @@ const createTopic = async (memo, useAdminKey, useSubmitKey, network) => {
     console.error(`Error! Hedera service TopicCreateTransaction failed with error status ${error.status.toString()}!`)
     process.exit(1)
   }
-  
 }
 
-const deleteTopic = async (topicId, network) => {
+const deleteTopic = async (topicId, network, credFile) => {
   try {
-    const operator = setOperator(network) 
+    const operator = setOperator(network, credFile) 
 
     const transactionTopic = await new TopicDeleteTransaction()
       .setTopicId(topicId)
       .freezeWith(operator)
 
-    const privateKey = PrivateKey.fromString(process.env.PRIVATE_KEY)
+    const credentials = cred.readFileCredentials(credFile)
+    const privateKey = PrivateKey.fromString(credentials.privateKey)
     const transactionTopicSigned = await transactionTopic.sign(privateKey);
 
     const transactionResponse = await transactionTopicSigned.execute(operator)
@@ -118,9 +125,93 @@ const deleteTopic = async (topicId, network) => {
   }
 }
 
-const sendMessage = async (topicId, message, network) => {
+
+const updateTopic = async (topicId, memo, adminCredFile, submitCredFile, network, credFile) => {
   try {
-    const operator = setOperator(network) 
+    const operator = setOperator(network, credFile) 
+
+    let adminAccountId  = "none" 
+    let submitAccountId = "none" 
+
+    const credentials = cred.readFileCredentials(credFile)
+    const privateKey = PrivateKey.fromString(credentials.privateKey)
+
+    const transactionTopic = await new TopicUpdateTransaction()
+      .setTopicId(topicId)
+
+    if (memo !== null) {
+      transactionTopic.setTopicMemo(memo)
+    }
+
+    if (adminCredFile !== null) {
+      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      adminAccountId  = adminCredentials.accountId 
+      const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
+      transactionTopic.setAdminKey(adminKey)
+    }
+    
+    if (submitCredFile !== null) {
+      const submitCredentials = cred.readFileCredentials(submitCredFile)
+      submitAccountId  = submitCredentials.accountId 
+      const submitKey = PrivateKey.fromString(submitCredentials.privateKey)
+      transactionTopic.setSubmitKey(submitKey)
+    }
+
+    await transactionTopic.freezeWith(operator)
+
+    let signedTransaction = await transactionTopic.sign(privateKey);
+
+    if (adminCredFile !== null) {
+      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
+      signedTransaction = await transactionTopic.sign(adminKey);
+    }
+    const transactionResponse = await signedTransaction.execute(operator)
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
+
+    const transactionStatus = transactionReceipt.status.toString()
+
+    const updatedTopic = 
+      { topicId            : topicId,
+        accountId4AdminKey : adminAccountId ,
+        accountId4SubmitKey: submitAccountId 
+      }
+
+    const result = {
+      updatedTopic,
+      transactionStatus
+    }
+    return result
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TopicUpdateTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
+}
+
+
+
+
+const getTopicInfo = async (topicId, network, credFile) => {
+  try {
+    const operator = setOperator(network, credFile)
+
+    const topicInfo = new TopicInfoQuery()
+      .setTopicId(topicId)
+      .execute(operator)
+
+    return topicInfo 
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TopicInfoQuery failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
+}
+
+
+const sendMessage = async (topicId, message, network, credFile) => {
+  try {
+    const operator = setOperator(network, credFile) 
 
     const transactionTopic = new TopicMessageSubmitTransaction()
     transactionTopic.setTopicId(topicId)
@@ -135,11 +226,64 @@ const sendMessage = async (topicId, message, network) => {
     console.error(`Error! Hedera service TopicMessageSubmitTransaction failed with error status ${error.status.toString()}!`)
     process.exit(1)
   }
-
 }
 
 
-exports.createTopic = createTopic
-exports.deleteTopic = deleteTopic
-exports.sendMessage = sendMessage
+exports.createTopic    = createTopic
+exports.deleteTopic    = deleteTopic
+exports.updateTopic    = updateTopic
+exports.sendMessage    = sendMessage
+exports.getTopicInfo   = getTopicInfo 
 
+/*
+const clearTopicKeys = async (topicId, keyToClear, network, credFile) => {
+  try {
+    const operator = setOperator(network, credFile) 
+
+    let adminAccountId  = "unmodified" 
+    let submitAccountId = "unmodified" 
+
+    const transactionTopic = await new TopicUpdateTransaction()
+      .setTopicId(topicId)
+
+    if (keyToClear === "admin") {
+      await transactionTopic.clearAdminKey()
+      adminAccountId  = "none" 
+    }
+    else if (keyToClear === "submit") {
+      console.log("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
+      await transactionTopic.clearSubmitKey()
+      submitAccountId = "none" 
+    }
+    
+    await transactionTopic.freezeWith(operator)
+
+    const credentials = cred.readFileCredentials(credFile)
+    const privateKey = PrivateKey.fromString(credentials.privateKey)
+    let signedTransaction = await transactionTopic.sign(privateKey);
+
+    const transactionResponse = await signedTransaction.execute(operator)
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
+    const transactionStatus = transactionReceipt.status.toString()
+
+    const updatedTopic = 
+      { topicId            : topicId,
+        accountId4AdminKey : adminAccountId ,
+        accountId4SubmitKey: submitAccountId 
+      }
+
+    const result = {
+      updatedTopic,
+      transactionStatus
+    }
+    return result
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TopicUpdateTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
+}
+*/
+
+//exports.clearTopicKeys = clearTopicKeys 
+//

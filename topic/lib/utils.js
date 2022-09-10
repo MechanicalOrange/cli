@@ -59,9 +59,21 @@ const messageParseString = (value) => {
   }
 }
 
+const printTopicInfo = (topicInfo) => {
+  //console.log(topicInfo)
+  console.log("topicId:", topicInfo.topicId.toString())
+  console.log("adminKey:", topicInfo.adminKey == null ? "none" : topicInfo.adminKey.toString())
+  console.log("submitKey:", topicInfo.submitKey == null ? "none" : topicInfo.submitKey.toString())
+  console.log("sequenceNumber:", topicInfo.sequenceNumber.toString())
+  //console.log("runningHash:", topicInfo.runningHash.toString())
+  console.log("memo:", topicInfo.topicMemo)
+  console.log("network:", topicInfo.ledgerId.toString())
+}
+
 exports.accntParseString   = accntParseString
 exports.memoParseString    = memoParseString 
 exports.messageParseString = messageParseString
+exports.printTopicInfo     = printTopicInfo 
 
 
 

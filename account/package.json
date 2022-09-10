@@ -1,5 +1,5 @@
 {
-  "name": "wallet",
+  "name": "account",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "wallet": "./bin/index.js"
+    "account": "./bin/index.js"
   },
   "author": "MechanicalOrange",
   "license": "MIT",

@@ -38,20 +38,22 @@ program
   .version(pckg.version)
 
 program
-  .command('create-topic')
+  .command('create')
   .addOption(new program.Option('-m, --memo [memo]', 'Memo of the topic. Default value is empty string "".')
     .argParser(util.memoParseString).default("")) 
-  .addOption(new program.Option('-a, --use-admin-key [yes/no]', 'Use admin Key. If not used, the topic can never be deleted. The admin key is the private key from the .env file. Default value is "no".')
-    .choices(['yes', 'no']).default("no"))
-  .addOption(new program.Option('-s, --use-submit-key [yes/no]', 'Use submit Key. If not used, acny account can send message to the topic. The submit key is the private key from the .env file. Default value is "no"')
-    .choices(['yes', 'no']).default("no"))
+  .addOption(new program.Option('-a, --admin-file [admin-file]', 'The admin key is the private key from the admin-file. By default no admin key is set.')
+    .argParser(util.messageParseString).default(null)) 
+  .addOption(new program.Option('-s, --submit-file [submit-file]', 'The submit key is the private key from the submit-file. By default no submit key is set.')
+    .argParser(util.messageParseString).default(null)) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
-  .description('Create a HCS topic. Topic can have a memo and is created on testnet or mainnet.')
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('Create a HCS topic. Topic can have a memo and is created on testnet or mainnet. The admin key must be identical with the credential key.')
   .action(async (args) => {
 
     console.log(`Creating a topic `) 
-    const result = await mapi.createTopic(args.memo, args.useAdminKey, args.useSubmitKey, args.network)
+    const result = await mapi.createTopic(args.memo, args.adminFile, args.submitFile, args.network, args.cred)
 
     let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {
@@ -67,16 +69,18 @@ program
 
 
 program
-  .command('delete-topic')
+  .command('delete')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Delete the topic with the id topic-id.')
   .action(async (args) => {
 
     console.log(`Deleting the topic ${args.topicId} `) 
-    const status = await mapi.deleteTopic(args.topicId, args.network)
+    const status = await mapi.deleteTopic(args.topicId, args.network, args.cred)
 
     let exitStatus = null
 
@@ -94,6 +98,59 @@ program
 
 
 program
+  .command('update')
+  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-m, --memo [memo]', 'The new memo of the topic. By default the memo is not changed.')
+    .argParser(util.memoParseString).default("")) 
+  .addOption(new program.Option('-a, --admin-file [admin-file]', 'The new admin key is the private key from the admin-file. By default the admin key is not changed.')
+    .argParser(util.messageParseString).default(null)) 
+  .addOption(new program.Option('-s, --submit-file [submit-file]', 'The new submit key is the private key from the submit-file. By default the submit key is not changed.')
+    .argParser(util.messageParseString).default(null)) 
+  .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
+    .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('Update a HCS topic. The memo, the admin key and the submit key can be modified jon testnet or mainnet.')
+  .action(async (args) => {
+
+    console.log(`Updating topic ${args.topicId} `) 
+    const result = await mapi.updateTopic(args.topicId, args.memo, args.adminFile, args.submitFile, args.network, args.cred)
+
+    let exitStatus = null
+    if (result.transactionStatus === "SUCCESS") {
+      console.log("Topic was updated!")
+      file.writeFileTopic(result.updatedTopic)
+      exitStatus = 0 
+    }
+    else {
+      console.error("ERROR! Topic was not updated!")
+      exitStatus = 1 
+    }
+    process.exit(exitStatus)
+  })
+
+
+program
+  .command('get-info')
+  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
+    .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('Get full info of the topic with the id topic-id.')
+  .action(async (args) => {
+
+    console.log(`Getting the info for the topic ${args.topicId} `) 
+    const topicInfo = await mapi.getTopicInfo(args.topicId, args.network, args.cred)
+    util.printTopicInfo(topicInfo)
+
+    process.exit(0)
+  })
+
+
+program
   .command('send-message')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', 'The account Id.')
     .argParser(util.accntParseString).makeOptionMandatory()) 
@@ -101,11 +158,13 @@ program
     .argParser(util.messageParseString).default("")) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Send a message to the topic.')
   .action(async (args) => {
 
     console.log(`Sending the message:\n${args.message}\nto ${args.topicId} `) 
-    const status = await mapi.sendMessage(args.topicId, args.message, args.network)
+    const status = await mapi.sendMessage(args.topicId, args.message, args.network, args.cred)
 
     let exitStatus = null
     if (status === "SUCCESS") {
@@ -124,17 +183,19 @@ program
   .command('send-file')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-f, --file <path-to-file> ', "File sent.")
+  .addOption(new program.Option('-f, --file <path-to-file> ', "The file that contains the message that is going to be sent. This is useful for long messages.")
     .argParser(util.messageParseString).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Send the content of a file as a message to the topic. The file size must be smaller than 1024 bytes.')
   .action(async (args) => {
 
     const message = file.transformFileIntoMessage(args.file) 
 
     console.log(`Sending the message:\n${message}\nto ${args.topicId} `) 
-    const status = await mapi.sendMessage(args.topicId, message, args.network)
+    const status = await mapi.sendMessage(args.topicId, message, args.network, args.cred)
 
     let exitStatus = null
 
@@ -155,10 +216,12 @@ program
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --memo <memo>', 'Memo of the timestamp. Default value is empty string "".')
     .argParser(util.messageParseString).default("")) 
-  .addOption(new program.Option('-f, --file <path-to-file> ', 'File sent that has the signature computed and sent to the network.')
+  .addOption(new program.Option('-f, --file <path-to-file> ', 'File sent that has the SHA3-256 signature computed and sent to the network.')
     .argParser(util.messageParseString).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Generate the SHA3-256 hash and send it to the topic. The format of the message is "message-memo sha-signature".')
   .action(async (args) => {
 
@@ -167,7 +230,7 @@ program
     const message = `${args.memo} ${shaSignature}`
 
     console.log(`Sending the message:\n${message}\nto ${args.topicId} `) 
-    const status = await mapi.sendMessage(args.topicId, message, args.network)
+    const status = await mapi.sendMessage(args.topicId, message, args.network, args.cred)
 
     let exitStatus = null
 
@@ -184,3 +247,33 @@ program
 
 program.parse(process.argv)
 
+/*
+program
+  .command('clear-key')
+  .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-k, --key <key-type>', 'The key to be cleared.')
+    .choices(['admin', 'submit']).makeOptionMandatory())
+  .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
+    .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('Create a HCS topic. Topic can have a memo and is created on testnet or mainnet.')
+  .action(async (args) => {
+
+    console.log(`Clearing key ${args.keyType} for topic ${args.topicId} `) 
+    const result = await mapi.clearTopicKeys(args.topicId, args.key, args.network, args.cred)
+
+    let exitStatus = null
+    if (result.transactionStatus === "SUCCESS") {
+      console.log(`Topic key  ${args.key} was cleared!`)
+      file.writeFileTopic(result.updatedTopic)
+      exitStatus = 0 
+    }
+    else {
+      console.error("ERROR! Topic key was not cleared!")
+      exitStatus = 1 
+    }
+    process.exit(exitStatus)
+  })
+  */

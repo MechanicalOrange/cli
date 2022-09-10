@@ -44,7 +44,39 @@ const writeFileAccount = (account) => {
   console.log("Please keep this file safe!")
 }
 
+const writeFileMnemonic = (account, mnemonic) => {
+  const filePath = path.resolve(os.homedir(), account.accountId + ".mnm")
+  
+  let mnemoAll = mnemonic.words + "\n" + mnemonic.index
+  fs.writeFileSync(filePath, mnemoAll, error => {
+    if (error) {
+      console.log(error)
+      process.exit(1)
+    }
+  })
+  console.log(`The new mnemonics were successfully saved in ${filePath}`)
+  console.log("Please keep this file safe!")
+}
 
-exports.writeFileAccount = writeFileAccount
+const readFileMnemonic = (pathMnemonicFile) => {
+  const allFileContents = fs.readFileSync(pathMnemonicFile, 'utf-8');
+  let mnemonic = allFileContents.split(/\r?\n/)
+  let mnemonicAsArray = mnemonic[0].split(/\s/)
+  if (mnemonicAsArray.length !== 24) {
+    console.error("ERROR! The mnemonic file must have 24 words separated by spaces in one line!")
+    console.log(mnemonicAsArray)
+    process.exit(1)
+  }
+  const mnemonicInfo = {
+    words: mnemonic[0],
+    index: mnemonic[1]
+  }
+  return mnemonicInfo
+}
+
+exports.writeFileAccount    = writeFileAccount
+exports.writeFileMnemonic   = writeFileMnemonic
+exports.readFileMnemonic    = readFileMnemonic 
+
 
 
