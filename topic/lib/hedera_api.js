@@ -28,7 +28,7 @@ const cred = require('../../common/credentials')
 
 const setOperator = (network, credFile) => {
   try {
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
     const accountId  = credentials.accountId
     const privateKey = credentials.privateKey
 
@@ -65,14 +65,14 @@ const createTopic = async (memo, adminCredFile, submitCredFile, network, credFil
       .setTopicMemo(memo)
 
     if (adminCredFile !== null) {
-      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      const adminCredentials = cred.readFileJson(adminCredFile)
       adminAccountId  = adminCredentials.accountId 
       const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
       transactionTopic.setAdminKey(adminKey)
     }
 
     if (submitCredFile !== null) {
-      const submitCredentials = cred.readFileCredentials(submitCredFile)
+      const submitCredentials = cred.readFileJson(submitCredFile)
       submitAccountId  = submitCredentials.accountId 
       const submitKey = PrivateKey.fromString(submitCredentials.privateKey)
       transactionTopic.setSubmitKey(submitKey)
@@ -109,7 +109,7 @@ const deleteTopic = async (topicId, network, credFile) => {
       .setTopicId(topicId)
       .freezeWith(operator)
 
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
     const privateKey = PrivateKey.fromString(credentials.privateKey)
     const transactionTopicSigned = await transactionTopic.sign(privateKey);
 
@@ -133,7 +133,7 @@ const updateTopic = async (topicId, memo, adminCredFile, submitCredFile, network
     let adminAccountId  = "none" 
     let submitAccountId = "none" 
 
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
     const privateKey = PrivateKey.fromString(credentials.privateKey)
 
     const transactionTopic = await new TopicUpdateTransaction()
@@ -144,14 +144,14 @@ const updateTopic = async (topicId, memo, adminCredFile, submitCredFile, network
     }
 
     if (adminCredFile !== null) {
-      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      const adminCredentials = cred.readFileJson(adminCredFile)
       adminAccountId  = adminCredentials.accountId 
       const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
       transactionTopic.setAdminKey(adminKey)
     }
     
     if (submitCredFile !== null) {
-      const submitCredentials = cred.readFileCredentials(submitCredFile)
+      const submitCredentials = cred.readFileJson(submitCredFile)
       submitAccountId  = submitCredentials.accountId 
       const submitKey = PrivateKey.fromString(submitCredentials.privateKey)
       transactionTopic.setSubmitKey(submitKey)
@@ -162,7 +162,7 @@ const updateTopic = async (topicId, memo, adminCredFile, submitCredFile, network
     let signedTransaction = await transactionTopic.sign(privateKey);
 
     if (adminCredFile !== null) {
-      const adminCredentials = cred.readFileCredentials(adminCredFile)
+      const adminCredentials = cred.readFileJson(adminCredFile)
       const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
       signedTransaction = await transactionTopic.sign(adminKey);
     }
@@ -258,7 +258,7 @@ const clearTopicKeys = async (topicId, keyToClear, network, credFile) => {
     
     await transactionTopic.freezeWith(operator)
 
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
     const privateKey = PrivateKey.fromString(credentials.privateKey)
     let signedTransaction = await transactionTopic.sign(privateKey);
 

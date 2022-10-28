@@ -29,7 +29,8 @@ const cred = require('../../common/credentials')
 
 const setOperator = (network, credFile) => {
   try {
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
+
     const accountId  = credentials.accountId
     const privateKey = credentials.privateKey
 
@@ -217,7 +218,7 @@ const getAccountBalance = async (accountId, network, credFile) => {
 
 const transferCrypto = async (receiverAccntId, amountHbar, network, credFile) =>  {
   try {
-    const credentials = cred.readFileCredentials(credFile)
+    const credentials = cred.readFileJson(credFile)
     const accountId  = credentials.accountId
     const operator = setOperator(network, credFile)
     const transferTransactionResponse = await new TransferTransaction()
@@ -250,7 +251,8 @@ const getAccountInfo = async (accountId, network, credFile) => {
   }
 }
 
-const MyHbarWalletIndex = 1099511627775
+//const MyHbarWalletIndex = 1099511627775
+const MyHbarWalletIndex = 0
 
 const generateMnemonicAndKeysAssociatedMyHbarWallet = async () => {
   const mnemonic = await Mnemonic.generate();
@@ -271,6 +273,7 @@ const generateMnemonicAndKeysAssociatedMyHbarWallet = async () => {
 
 const reconstructKeysFromMnemonicMyHbarWallet = async (mnemonicSpaceSeparatedString) => {
   let mnemonic = await Mnemonic.fromString(mnemonicSpaceSeparatedString)
+  console.log(mnemonic)
   const rootPrivateKey = await mnemonic.toLegacyPrivateKey();
   const privateKeyMhwRoot = await rootPrivateKey.legacyDerive(MyHbarWalletIndex);
 

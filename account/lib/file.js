@@ -25,21 +25,13 @@ SOFTWARE.
 const fs   = require('fs')
 const os   = require('os')
 const path = require('path')
+const cred = require('../../common/credentials')
 
 
 const writeFileAccount = (account) => {
   const filePath = path.resolve(os.homedir(), account.accountId)
+  cred.writeFileJson(account, filePath)
   
-  let accountInfo = "ACCOUNT_ID="  + account.accountId  +"\n"
-  accountInfo    += "PUBLIC_KEY="  + account.publicKey  +"\n"
-  accountInfo    += "PRIVATE_KEY=" + account.privateKey +"\n"
-
-  fs.writeFileSync(filePath, accountInfo, error => {
-    if (error) {
-      console.log(error)
-      process.exit(1)
-    }
-  })
   console.log(`The new account id and keys were successfully saved in ${filePath}`)
   console.log("Please keep this file safe!")
 }

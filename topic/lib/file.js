@@ -25,21 +25,13 @@ SOFTWARE.
 const fs   = require('fs')
 const os   = require('os')
 const path = require('path')
+const cred = require('../../common/credentials')
 
 
 const writeFileTopic = (topic) => {
   const filePath = path.resolve(os.homedir(), topic.topicId)
+  cred.writeFileJson(topic, filePath)
   
-  let accountInfo = "TOPIC_ID="                  + topic.topicId             +"\n"
-  accountInfo    += "ACCOUNT_ID_FOR_ADMIN_KEY="  + topic.accountId4AdminKey  +"\n"
-  accountInfo    += "ACCOUNT_ID_FOR_SUBMIT_KEY=" + topic.accountId4SubmitKey +"\n"
-
-  fs.writeFileSync(filePath, accountInfo, error => {
-    if (error) {
-      console.error(error)
-      process.exit(1)
-    }
-  })
   console.log(`The new topic id and admin account  were successfully saved in ${filePath}`)
   console.log("Please keep this file safe!")
 }

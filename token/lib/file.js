@@ -25,34 +25,18 @@ SOFTWARE.
 const fs   = require('fs')
 const os   = require('os')
 const path = require('path')
+const cred = require('../../common/credentials')
 
 
-
-const writeFileJson = (obj, path) => {
-  try {
-    fs.writeFileSync(path, JSON.stringify(obj, null, 2), 'utf8');
-
-    //console.log(`Data successfully saved to disk at ${path}`);
-  } catch (error) {
-    console.log('An error has occurred ', error);
-  }
-}
-
-const readFileJson = (path) => {
-  try {
-    const data = fs.readFileSync(path);
-    //console.log(JSON.parse(data));
-    //console.log(`Data successfully read from ${path}`);
-    return JSON.parse(data)
-  } catch (error) {
-    console.log('An error has occurred ', error);
-  }
+const writeFileToken = (token) => {
+  const filePath = path.resolve(os.homedir(), token.tokenId)
+  cred.writeFileJson(token, filePath)
+  
+  console.log(`The new token id and token configuration are saved in ${filePath}`)
+  console.log("Please keep this file safe!")
 }
 
 
-
-exports.writeFileJson       = writeFileJson 
-exports.readFileJson        = readFileJson 
-
+exports.writeFileToken           = writeFileToken
 
 

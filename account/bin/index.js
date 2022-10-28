@@ -123,7 +123,7 @@ program
     console.log(`Deleting an account`) 
 
     const cred = require('../../common/credentials')
-    const credentials = cred.readFileCredentials(args.cred)
+    const credentials = cred.readFileJson(args.cred)
     if (credentials.accountId.localeCompare(args.accountId) !== 0) {
       console.error(`ERROR! The credentials used must have the same accountId ${credentials.accountId} as the one passed with the account-id option ${args.accountId}!`)
       process.exit(1)
@@ -175,7 +175,7 @@ program
     }
 
     const cred = require('../../common/credentials')
-    const credentials = cred.readFileCredentials(args.cred)
+    const credentials = cred.readFileJson(args.cred)
     if (credentials.accountId.localeCompare(args.accountId) !== 0) {
       console.error(`ERROR! The credentials used must have the same accountId ${credentials.accountId} as the one passed with the account-id option ${args.accountId}!`)
       process.exit(1)
@@ -365,5 +365,21 @@ program
   })
 
 
+program
+  .command('test-json')
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('test JSON file')
+  .action(async (args) => {
+
+    const cred = require('../../common/credentials')
+    let cl = console.log
+    //cred.writeFileJson(credentials, path)
+    let td = cred.readFileJson("/home/roni/DONOTDELETE/test_cli/token_template.json")
+    cl(td)
+
+  })
+
 program.parse(process.argv)
+
 
