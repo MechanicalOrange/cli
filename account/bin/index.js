@@ -159,6 +159,8 @@ program
     .argParser(util.accntParseString).default(null)) 
   .addOption(new program.Option('-d, --decline-staking [yes/no], default "no"', 'If set to "yes", the account will not receive staking rewards.')
     .choices(['yes', 'no']).default(null)) 
+  .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
+    .argParser(util.hbarParseFloat).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
@@ -181,7 +183,7 @@ program
       process.exit(1)
     }
 
-    const transactionStatus = await mapi.updateAccount(args.accountId, args.memo, args.assoc, args.stakedNodeId, args.stakedAccountId, args.declineStaking, args.network, args.cred)
+    const transactionStatus = await mapi.updateAccount(args.accountId, args.memo, args.assoc, args.stakedNodeId, args.stakedAccountId, args.declineStaking, args.maxFee, args.network, args.cred)
 
     if (transactionStatus === "SUCCESS") {
       console.log(`Account ${args.accountId} was updated successfully!`)
@@ -256,6 +258,7 @@ program
     console.log(`Getting the account info of ${args.accountId}`) 
     const accInfo = await mapi.getAccountInfo(args.accountId, args.network, args.cred)
     util.printAccountInfo(accInfo)
+    //console.dir(accInfo)
     process.exit(0)
   })
 

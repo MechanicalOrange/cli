@@ -100,7 +100,12 @@ const printAccountInfo = (accountInfo) => {
   console.log("The current balance of hbars on the account:", accountInfo.balance.toString()) 
   console.log("The signature of this account is", accountInfo.isReceiverSignatureRequired ? "": "not" , "required for other accounts to transfer to it.")  
   console.log("All of the livehashes attached to the account:", accountInfo.liveHashes)  
-  console.log("All tokens related to this account:", accountInfo.tokenRelationships.toString())  
+  //console.log("All tokens related to this account:", accountInfo.tokenRelationships.toString())  
+  // this will become obsolete
+  console.log("All tokens related to this account:")  
+  for (const key of accountInfo.tokenRelationships.keys()) {
+    console.log(`TokenID: ${key}`)
+  }
   console.log("The number of NFTs owned by the specified account:", accountInfo.ownedNfts.toString())  
   console.log("The total number of auto token associations that are specified for this account:", accountInfo.maxAutomaticTokenAssociations.toString())    
   console.log("The memo of the account:", accountInfo.accountMemo) 

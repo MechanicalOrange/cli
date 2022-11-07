@@ -137,6 +137,7 @@ const createAccountWithMnemonics = async (hbarAmount, memo, maxAssoc, maxFee, mn
     process.exit(1)
   }
 }
+
 const deleteAccount = async (accountId, accountIdToTransferBalance, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
@@ -153,18 +154,19 @@ const deleteAccount = async (accountId, accountIdToTransferBalance, network, cre
   }
   catch(error) {
     console.error(error)
-    console.error(`Error! Hedera service AccountTransaction failed with error status ${error.status.toString()}!`)
+    console.error(`Error! Hedera service AccountDeleteTransaction failed with error status ${error.status.toString()}!`)
     process.exit(1)
   }
 }
 
 
 
-const updateAccount = async (accountId, memo, maxAssoc, stakedNodeId, stakedAccountId, declineStaking, network, credFile) => {
+const updateAccount = async (accountId, memo, maxAssoc, stakedNodeId, stakedAccountId, declineStaking, maxFee, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
 
     const transactionUpdate = await new AccountUpdateTransaction()
+      .setMaxTransactionFee(new Hbar(maxFee))
       .setAccountId(accountId)
 
     if (memo !== null) {

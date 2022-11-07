@@ -23,9 +23,9 @@ SOFTWARE.
 */
 
 
-  let cl = console.log  
+let cl = console.log  
 
-const { Client, PrivateKey, AccountBalanceQuery, TokenGrantKycTransaction, TokenRevokeKycTransaction, TransferTransaction, TokenAssociateTransaction, TokenDissociateTransaction, TokenCreateTransaction, TokenUpdateTransaction, TokenDeleteTransaction, TokenInfoQuery, TokenMintTransaction, TokenBurnTransaction, TokenWipeTransaction, TokenPauseTransaction, TokenUnpauseTransaction, TokenFreezeTransaction, TokenUnfreezeTransaction, TokenType, TokenSupplyType } = require("@hashgraph/sdk")
+const { Client, PrivateKey, AccountBalanceQuery, TokenFeeScheduleUpdateTransaction, TokenGrantKycTransaction, TokenRevokeKycTransaction, TransferTransaction, TokenAssociateTransaction, TokenDissociateTransaction, TokenCreateTransaction, TokenUpdateTransaction, TokenDeleteTransaction, TokenInfoQuery, TokenMintTransaction, TokenBurnTransaction, TokenWipeTransaction, TokenPauseTransaction, TokenUnpauseTransaction, TokenFreezeTransaction, TokenUnfreezeTransaction, TokenType, TokenSupplyType, CustomFractionalFee, CustomFixedFee } = require("@hashgraph/sdk")
 
 const cred = require('../../common/credentials')
 
@@ -85,7 +85,10 @@ const createToken = async (tokenCfg, network, credFile) => {
       if (tokenCfg.supplyType === "Finite") txnToken.setSupplyType(TokenSupplyType.Finite)
       if (tokenCfg.supplyType === "Infinite") txnToken.setSupplyType(TokenSupplyType.Infinite)
     }
-    if (tokenCfg.freezeDefault  != undefined) txnToken.setFreezeDefault (tokenCfg.freezeDefault )
+    if (tokenCfg.freezeDefault  != undefined) {
+      let val = tokenCfg.freezeDefault === "true" ? true : false;
+      txnToken.setFreezeDefault (val)
+    }
     if (tokenCfg.memo           != undefined) txnToken.setTokenMemo     (tokenCfg.memo          )
 
     const operator = setOperator(network, credFile) 
@@ -186,19 +189,16 @@ const wipeToken = async (wipedAccountId, amount, tokenId, wipeCredFile, network,
       .setAmount(amount)
       .freezeWith(operator)
 
-    console.log("a0")
     const wipeCred = cred.readFileJson(wipeCredFile)
     const wipeKey = PrivateKey.fromString(wipeCred.privateKey)
     const credentials = cred.readFileJson(credFile)
     const privateKey = PrivateKey.fromString(credentials.privateKey)
 
-    console.log("a1")
     const transactionTokenSigned = await (await transactionToken.sign(privateKey)).sign(wipeKey)
 
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
-    console.log("a2")
 
     return transactionStatus
   }
@@ -258,23 +258,17 @@ const unpauseToken = async (tokenId, pauseCredFile, network, credFile) => {
 
 const associateToken = async (tokenId, network, credFile) => {
   try {
-    console.log("a0")
     const operator = setOperator(network, credFile) 
     const credentials = cred.readFileJson(credFile)
     const accountId  = credentials.accountId
     const privateKey = PrivateKey.fromString(credentials.privateKey)
-
-    console.log("a1")
 
     const transactionToken = await new TokenAssociateTransaction()
       .setAccountId(accountId)
       .setTokenIds([tokenId])
       .freezeWith(operator)
 
-    console.log("a2")
     const transactionTokenSigned = await transactionToken.sign(privateKey);
-
-    console.log("a3")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -289,23 +283,19 @@ const associateToken = async (tokenId, network, credFile) => {
 
 const dissociateToken = async (tokenId, network, credFile) => {
   try {
-    console.log("a0")
     const operator = setOperator(network, credFile) 
     const credentials = cred.readFileJson(credFile)
     const accountId  = credentials.accountId
     const privateKey = PrivateKey.fromString(credentials.privateKey)
 
-    console.log("a1")
 
     const transactionToken = await new TokenDissociateTransaction()
       .setAccountId(accountId)
       .setTokenIds([tokenId])
       .freezeWith(operator)
 
-    console.log("a2")
     const transactionTokenSigned = await transactionToken.sign(privateKey);
 
-    console.log("a3")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -321,19 +311,16 @@ const dissociateToken = async (tokenId, network, credFile) => {
 const freezeToken = async (tokenId, unfreezeAccountId, freezeCredFile, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
-    console.log("a0")
 
     const transactionToken = await new TokenFreezeTransaction()
       .setAccountId(unfreezeAccountId)
       .setTokenId(tokenId)
       .freezeWith(operator)
 
-    console.log("a1")
     const freezeCred = cred.readFileJson(freezeCredFile)
     const freezeKey = PrivateKey.fromString(freezeCred.privateKey)
     const transactionTokenSigned = await transactionToken.sign(freezeKey);
 
-    console.log("a2")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -349,19 +336,16 @@ const freezeToken = async (tokenId, unfreezeAccountId, freezeCredFile, network, 
 const unfreezeToken = async (tokenId, unfreezeAccountId, freezeCredFile, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
-    console.log("a0")
 
     const transactionToken = await new TokenUnfreezeTransaction()
       .setAccountId(unfreezeAccountId)
       .setTokenId(tokenId)
       .freezeWith(operator)
 
-    console.log("a1")
     const freezeCred = cred.readFileJson(freezeCredFile)
     const freezeKey = PrivateKey.fromString(freezeCred.privateKey)
     const transactionTokenSigned = await transactionToken.sign(freezeKey);
 
-    console.log("a2")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -377,19 +361,16 @@ const unfreezeToken = async (tokenId, unfreezeAccountId, freezeCredFile, network
 const grantKycToken = async (tokenId, grantKycAccountId, kycCredFile, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
-    console.log("a0")
 
     const transactionToken = await new TokenGrantKycTransaction()
       .setAccountId(grantKycAccountId)
       .setTokenId(tokenId)
       .freezeWith(operator)
 
-    console.log("a1")
     const kycCred = cred.readFileJson(kycCredFile)
     const kycKey = PrivateKey.fromString(kycCred.privateKey)
     const transactionTokenSigned = await transactionToken.sign(kycKey);
 
-    console.log("a2")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -405,19 +386,16 @@ const grantKycToken = async (tokenId, grantKycAccountId, kycCredFile, network, c
 const revokeKycToken = async (tokenId, grantKycAccountId, kycCredFile, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
-    console.log("a0")
 
     const transactionToken = await new TokenRevokeKycTransaction()
       .setAccountId(grantKycAccountId)
       .setTokenId(tokenId)
       .freezeWith(operator)
 
-    console.log("a1")
     const kycCred = cred.readFileJson(kycCredFile)
     const kycKey = PrivateKey.fromString(kycCred.privateKey)
     const transactionTokenSigned = await transactionToken.sign(kycKey);
 
-    console.log("a2")
     const transactionResponse = await transactionTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
     const transactionStatus   = transactionReceipt.status.toString();
@@ -443,12 +421,10 @@ const transferToken = async (tokenId, amount, receiverAccntId, network, credFile
       .freezeWith(operator);
     
     const transactionTokenSigned = await transactionToken.sign(privateKey)
-    console.log("a4")
     const transferTransactionResponse = await transactionTokenSigned.execute(operator)
 
     const transactionReceipt = await transferTransactionResponse.getReceipt(operator)
     const transactionStatus = transactionReceipt.status.toString()
-    console.log("a5")
     return transactionStatus
   }
   catch(error) {
@@ -482,61 +458,39 @@ const deleteToken = async (tokenId, network, credFile) => {
   }
 }
 
-
-/*
-const updateToken = async (tokenId, memo, adminCredFile, submitCredFile, network, credFile) => {
+const updateToken = async (tokenId, tokenCfg, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
 
-    let adminAccountId  = "none" 
-    let submitAccountId = "none" 
-
-    const credentials = cred.readFileJson(credFile)
-    const privateKey = PrivateKey.fromString(credentials.privateKey)
-
-    const transactionToken = await new TokenUpdateTransaction()
+    const txnToken = await new TokenUpdateTransaction()
       .setTokenId(tokenId)
+ 
+    if (tokenCfg.name           != undefined) txnToken.setTokenName     (tokenCfg.name)
+    if (tokenCfg.symbol         != undefined) txnToken.setTokenSymbol   (tokenCfg.symbol)
+    if (tokenCfg.treasuryAccount!= undefined) txnToken.setTreasuryAccountId(tokenCfg.treasuryAccount)
+    if (tokenCfg.adminKey       != undefined) txnToken.setAdminKey      (PrivateKey.fromString(tokenCfg.adminKey      ))
+    if (tokenCfg.kycKey         != undefined) txnToken.setKycKey        (PrivateKey.fromString(tokenCfg.kycKey        ))
+    if (tokenCfg.freezeKey      != undefined) txnToken.setFreezeKey     (PrivateKey.fromString(tokenCfg.freezeKey     ))
+    if (tokenCfg.wipeKey        != undefined) txnToken.setWipeKey       (PrivateKey.fromString(tokenCfg.wipeKey       ))
+    if (tokenCfg.supplyKey      != undefined) txnToken.setSupplyKey     (PrivateKey.fromString(tokenCfg.supplyKey     ))
+    if (tokenCfg.feeScheduleKey != undefined) txnToken.setFeeScheduleKey(PrivateKey.fromString(tokenCfg.feeScheduleKey))
+    if (tokenCfg.pauseKey       != undefined) txnToken.setPauseKey      (PrivateKey.fromString(tokenCfg.pauseKey      ))
+    if (tokenCfg.memo           != undefined) txnToken.setTokenMemo     (tokenCfg.memo          )
 
-    if (memo !== null) {
-      transactionToken.setTokenMemo(memo)
-    }
+    txnToken.freezeWith(operator)
+    const adminKey = PrivateKey.fromString(tokenCfg.adminKey)
+    const txnTokenSigned = await txnToken.sign(adminKey);
 
-    if (adminCredFile !== null) {
-      const adminCredentials = cred.readFileJson(adminCredFile)
-      adminAccountId  = adminCredentials.accountId 
-      const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
-      transactionToken.setAdminKey(adminKey)
-    }
-    
-    if (submitCredFile !== null) {
-      const submitCredentials = cred.readFileJson(submitCredFile)
-      submitAccountId  = submitCredentials.accountId 
-      const submitKey = PrivateKey.fromString(submitCredentials.privateKey)
-      transactionToken.setSubmitKey(submitKey)
-    }
-
-    await transactionToken.freezeWith(operator)
-
-    let signedTransaction = await transactionToken.sign(privateKey);
-
-    if (adminCredFile !== null) {
-      const adminCredentials = cred.readFileJson(adminCredFile)
-      const adminKey  = PrivateKey.fromString(adminCredentials.privateKey)
-      signedTransaction = await transactionToken.sign(adminKey);
-    }
-    const transactionResponse = await signedTransaction.execute(operator)
+    const transactionResponse = await txnTokenSigned.execute(operator)
     const transactionReceipt  = await transactionResponse.getReceipt(operator)
-
     const transactionStatus = transactionReceipt.status.toString()
-
-    const updatedToken = 
-      { tokenId            : tokenId,
-        accountId4AdminKey : adminAccountId ,
-        accountId4SubmitKey: submitAccountId 
-      }
-
+    const newToken = { 
+      tokenId : tokenId,
+      tokenCfg
+    }
+ 
     const result = {
-      updatedToken,
+      newToken,
       transactionStatus
     }
     return result
@@ -547,8 +501,92 @@ const updateToken = async (tokenId, memo, adminCredFile, submitCredFile, network
   }
 }
 
-*/
+const updateFixedFeeSchedule = async (tokenId, accountId, amount, feeCurency, feeCredFile, network, credFile) => {
+  try {
 
+    cl("a0")
+    const fee = new CustomFixedFee()
+      .setFeeCollectorAccountId(accountId) 
+
+
+    cl("a1", feeCurency)
+    if (feeCurency === "hbar") {
+      cl("a1", feeCurency)
+      //fee.setHbarAmount(amount)
+      cl("a1AOAOAO", feeCurency)
+    }
+    else {
+      fee.setDenominatingTokenId(tokenId) 
+      fee.setAmount(amount) 
+    }
+
+    cl("a1")
+    const operator = setOperator(network, credFile) 
+
+    const txnToken = await new TokenFeeScheduleUpdateTransaction()
+     .setTokenId(tokenId)
+     .setCustomFees([fee])
+     .freezeWith(operator);
+
+    cl("a2")
+    const feeCredentials = cred.readFileJson(feeCredFile)
+    const feeScheduleKey = PrivateKey.fromString(feeCredentials.privateKey)
+
+    const txnTokenSigned = await txnToken.sign(feeScheduleKey);
+
+    cl("a3")
+    const transactionResponse = await txnTokenSigned.execute(operator)
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
+    const transactionStatus = transactionReceipt.status.toString()
+
+    const result = {
+      transactionStatus
+    }
+    return result
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TokenFeeScheduleUpdateTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
+}
+
+
+const updateFractionalFeeSchedule = async (tokenId, accountId, numerator, denominator, maxFee, minFee, feeCredFile, network, credFile) => {
+  try {
+
+    const fee = new CustomFractionalFee()
+      .setNumerator(numerator) 
+      .setDenominator(denominator) 
+      .setMax(maxFee)
+      .setMin(minFee)
+      .setFeeCollectorAccountId(accountId)
+
+    const operator = setOperator(network, credFile) 
+
+    const txnToken = await new TokenFeeScheduleUpdateTransaction()
+     .setTokenId(tokenId)
+     .setCustomFees([fee])
+     .freezeWith(operator);
+
+    const feeCredentials = cred.readFileJson(feeCredFile)
+    const feeScheduleKey = PrivateKey.fromString(feeCredentials.privateKey)
+
+    const txnTokenSigned = await txnToken.sign(feeScheduleKey);
+
+    const transactionResponse = await txnTokenSigned.execute(operator)
+    const transactionReceipt  = await transactionResponse.getReceipt(operator)
+    const transactionStatus = transactionReceipt.status.toString()
+
+    const result = {
+      transactionStatus
+    }
+    return result
+  }
+  catch(error) {
+    console.error(`Error! Hedera service TokenFeeScheduleUpdateTransaction failed with error status ${error.status.toString()}!`)
+    process.exit(1)
+  }
+}
 
 const getTokenInfo = async (tokenId, network, credFile) => {
   try {
@@ -583,7 +621,10 @@ exports.grantKycToken   = grantKycToken
 exports.revokeKycToken  = revokeKycToken 
 exports.transferToken   = transferToken
 exports.deleteToken     = deleteToken
+exports.updateToken     = updateToken 
 exports.getTokenInfo    = getTokenInfo 
+exports.updateFixedFeeSchedule      = updateFixedFeeSchedule
+exports.updateFractionalFeeSchedule = updateFractionalFeeSchedule
 /*
 exports.updateToken    = updateToken
 */

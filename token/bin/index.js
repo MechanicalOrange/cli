@@ -35,7 +35,7 @@ const cred = require('../../common/credentials')
 
 program
   .name("token")
-  .description("Accessing HCS via CLI.")
+  .description("Accessing HTS via CLI.")
   .version(pckg.version)
 
 program
@@ -66,9 +66,10 @@ program
     process.exit(exitStatus)
   })
 
+
 program
   .command('get-balance')
-  .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id that is wiped.")
+  .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id that has the token balance checked.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -93,13 +94,15 @@ program
     process.exit(exitStatus)
   })
 
+
+
 program
   .command('mint')
   .addOption(new program.Option('-a, --amount <token>', "The amount of token to mint.")
     .argParser(util.tokenParseFloat).default(1)) 
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-s, --supply <supply-credentials-file>', "Path to the file that contains the accountID, public and private key of the supplyKey account. In the future it can be encrypted.")
+  .addOption(new program.Option('-s, --supply-cred <supply-credentials-file>', "Path to the file that contains the accountID, public and private key of the supplyKey account. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -109,7 +112,7 @@ program
   .action(async (args) => {
 
     console.log(`Minting a token `) 
-    const result = await mapi.mintToken(args.amount, args.tokenId, args.supply, args.network, args.cred)
+    const result = await mapi.mintToken(args.amount, args.tokenId, args.supplyCred, args.network, args.cred)
 
     let exitStatus = null
     if (result === "SUCCESS") {
@@ -130,7 +133,7 @@ program
     .argParser(util.tokenParseFloat).default(1)) 
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-s, --supply <supply-credentials-file>', "Path to the file that contains the accountID, public and private key of the supplyKey account. In the future it can be encrypted.")
+  .addOption(new program.Option('-s, --supply-cred <supply-credentials-file>', "Path to the file that contains the accountID, public and private key of the supplyKey account. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -140,7 +143,7 @@ program
   .action(async (args) => {
 
     console.log(`Burning a token `) 
-    const result = await mapi.burnToken(args.amount, args.tokenId, args.supply, args.network, args.cred)
+    const result = await mapi.burnToken(args.amount, args.tokenId, args.supplyCred, args.network, args.cred)
 
     let exitStatus = null
     if (result === "SUCCESS") {
@@ -162,7 +165,7 @@ program
     .argParser(util.tokenParseFloat).default(1)) 
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-s, --wipe <supply-credentials-file>', "Path to the file that contains the accountID, public and private key of the wipeKey account. In the future it can be encrypted.")
+  .addOption(new program.Option('-w, --wipe-cred <wipe-credentials-file>', "Path to the file that contains the accountID, public and private key of the wipeKey account. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -172,7 +175,7 @@ program
   .action(async (args) => {
 
     console.log(`Wiping a token `) 
-    const result = await mapi.wipeToken(args.accountId, args.amount, args.tokenId, args.wipe, args.network, args.cred)
+    const result = await mapi.wipeToken(args.accountId, args.amount, args.tokenId, args.wipeCred, args.network, args.cred)
 
     let exitStatus = null
     if (result === "SUCCESS") {
@@ -190,7 +193,7 @@ program
   .command('pause')
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-p, --pause <pause-credentials-file>', "Path to the file that contains the accountID, public and private key of the pauseKey account. In the future it can be encrypted.")
+  .addOption(new program.Option('-p, --pause-cred <pause-credentials-file>', "Path to the file that contains the accountID, public and private key of the pauseKey account. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -200,7 +203,7 @@ program
   .action(async (args) => {
 
     console.log(`Pausing a token `) 
-    const result = await mapi.pauseToken(args.tokenId, args.pause, args.network, args.cred)
+    const result = await mapi.pauseToken(args.tokenId, args.pauseCred, args.network, args.cred)
 
     let exitStatus = null
     if (result === "SUCCESS") {
@@ -218,7 +221,7 @@ program
   .command('unpause')
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-p, --pause <pause-credentials-file>', "Path to the file that contains the accountID, public and private key of the pauseKey account. In the future it can be encrypted.")
+  .addOption(new program.Option('-p, --pause-cred <pause-credentials-file>', "Path to the file that contains the accountID, public and private key of the pauseKey account. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -228,7 +231,7 @@ program
   .action(async (args) => {
 
     console.log(`Unpausing a token `) 
-    const result = await mapi.unpauseToken(args.tokenId, args.pause, args.network, args.cred)
+    const result = await mapi.unpauseToken(args.tokenId, args.pauseCred, args.network, args.cred)
 
     let exitStatus = null
     if (result === "SUCCESS") {
@@ -248,7 +251,7 @@ program
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
-  .addOption(new program.Option('-c, --cred <admin-credentials-file>', "Path to the file that contains the accountID, public and private key of the payer account. In the future it can be encrypted.")
+  .addOption(new program.Option('-c, --cred <admin-credentials-file>', "Path to the file that contains the accountID, public and private key of the account that is associated with the token. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Associate a token.')
   .action(async (args) => {
@@ -274,7 +277,7 @@ program
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
-  .addOption(new program.Option('-c, --cred <admin-credentials-file>', "Path to the file that contains the accountID, public and private key of the payer account. In the future it can be encrypted.")
+  .addOption(new program.Option('-c, --cred <admin-credentials-file>', "Path to the file that contains the accountID, public and private key of the account that is dissociated with the token. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Dissociate a token.')
   .action(async (args) => {
@@ -415,7 +418,7 @@ program
   })
 
 program
-  .command('transfer-token')
+  .command('transfer')
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-a, --amount <token>', "Amount of tokens to be transferred.")
@@ -424,7 +427,7 @@ program
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
-  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key of the payer. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
   .description('Transfer hbar to another account.')
   .action(async (args) => {
@@ -477,30 +480,88 @@ program
   .command('update')
   .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
     .argParser(util.accntParseString).makeOptionMandatory()) 
-  .addOption(new program.Option('-m, --memo [memo]', 'The new memo of the token. By default the memo is not changed.')
-    .argParser(util.memoParseString).default("")) 
-  .addOption(new program.Option('-a, --admin-file [admin-file]', 'The new admin key is the private key from the admin-file. By default the admin key is not changed.')
-    .argParser(util.messageParseString).default(null)) 
-  .addOption(new program.Option('-s, --submit-file [submit-file]', 'The new submit key is the private key from the submit-file. By default the submit key is not changed.')
-    .argParser(util.messageParseString).default(null)) 
+  .addOption(new program.Option('-g, --config <config-json-file>', "Path to the JSON file that contains the token new configuration.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
-  .description('Update a HCS token. The memo, the admin key and the submit key can be modified jon testnet or mainnet.')
+  .description('Create a token.')
   .action(async (args) => {
 
-    console.log(`Updating token ${args.tokenId} `) 
-    const result = await mapi.updateToken(args.tokenId, args.memo, args.adminFile, args.submitFile, args.network, args.cred)
+    console.log(`Updating a token `) 
+    const tokenConfig = util.checkTokenConfig(args.config)
+    const result = await mapi.updateToken(args.tokenId, tokenConfig, args.network, args.cred)
 
     let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {
-      console.log("Token was updated!")
-      file.writeFileToken(result.updatedToken)
+      file.writeFileToken(result.newToken)
+      //console.log(result.newToken)
       exitStatus = 0 
     }
     else {
-      console.error("ERROR! Token was not updated!")
+      console.error("ERROR! No token was updated!")
+      exitStatus = 1 
+    }
+    process.exit(exitStatus)
+  })
+
+
+//FIXME the checkser for numerator/denominator/min/max should be long, not float
+
+program
+  .command('update-fee')
+  .addOption(new program.Option('-t, --token-id <shard.realm.account>', "The token Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The fee collector account Id.")
+    .argParser(util.accntParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-a, --amount <hbar/token>', "The fee in hbar/tokens to be transferred to the fee collector account.")
+    .argParser(util.hbarParseFloat).default(0)) 
+  .addOption(new program.Option('-p, --fee-curency <type>', 'Fee curency type: hbar or token')
+    .choices(['hbar', 'token']).default('hbar'))
+  .addOption(new program.Option('-u, --numerator <postive integer>', "The numerator of the fractional fee in tokens to be transferred to the fee collector account.")
+    .argParser(util.hbarParseFloat).default(0)) 
+  .addOption(new program.Option('-d, --denominator <strict positive integer>', "The denominator of the fractional fee in tokens to be transferred to the fee collector account.")
+    .argParser(util.hbarParseFloat).default(1)) 
+  .addOption(new program.Option('-x, --max <strict positive integer>', "The max value of the fractional fee in tokens to be transferred to the fee collector account.")
+    .argParser(util.hbarParseFloat).default(0)) 
+  .addOption(new program.Option('-m, --min <strict positive integer>', "The min value of the fractional fee in tokens to be transferred to the fee collector account.")
+    .argParser(util.hbarParseFloat).default(0)) 
+  .addOption(new program.Option('-f, --fee-cred <fee-schedule-credentials-file>', "Path to the file that contains the accountID, public and private key of the feeScheduleKey account. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
+    .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
+  .description('Create a token.')
+  .action(async (args) => {
+
+    console.log(`Updating the fee-schedule of token `) 
+    if (args.amount === 0 && args.numerator === 0 && 
+        args.denominator === 1 && args.max === 0 && args.min == 0) {
+
+      console.error("ERROR! No token fee schedule was updated!")
+      exitStatus = 1 
+      process.exit(exitStatus)
+    }
+
+    let result = null
+    if (args.amount !== 0) {
+      result = await mapi.updateFixedFeeSchedule(args.tokenId, args.accountId, args.amount, args.feeCurency, args.feeCred, args.network, args.cred)
+    }
+
+    if (args.numerator ==! 0) {
+      result = await mapi.updateFractionalFeeSchedule(args.tokenId, args.accountId, args.numerator, args.denominator, args.max, args.min, args.feeCred, args.network, args.cred)
+    }
+
+    let exitStatus = null
+    if (result.transactionStatus === "SUCCESS") {
+      //console.log(result.newToken)
+      console.log("Token fee was updated!")
+      exitStatus = 0 
+    }
+    else {
+      console.error("ERROR! No token fee schedule was updated!")
       exitStatus = 1 
     }
     process.exit(exitStatus)
@@ -521,7 +582,6 @@ program
     console.log(`Getting the info for the token ${args.tokenId} `) 
     const tokenInfo = await mapi.getTokenInfo(args.tokenId, args.network, args.cred)
     util.printTokenInfo(tokenInfo)
-
     process.exit(0)
   })
 
