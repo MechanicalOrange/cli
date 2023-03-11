@@ -22,26 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/**
- * Prints information about a topic to the console.
- *
- * This function takes an object containing information about a topic and prints the various fields of the object to the console. The fields that are printed include the topicId, adminKey, submitKey, sequenceNumber, memo and network.
- *
- * @param topicInfo An object containing information about a topic.
- * @return void
- */
-const printTopicInfo = (topicInfo) => {
-  //console.log(topicInfo)
-  console.log("topicId:", topicInfo.topicId.toString())
-  console.log("adminKey:", topicInfo.adminKey == null ? "none" : topicInfo.adminKey.toString())
-  console.log("submitKey:", topicInfo.submitKey == null ? "none" : topicInfo.submitKey.toString())
-  console.log("sequenceNumber:", topicInfo.sequenceNumber.toString())
-  //console.log("runningHash:", topicInfo.runningHash.toString())
-  console.log("memo:", topicInfo.topicMemo)
-  console.log("network:", topicInfo.ledgerId.toString())
+const fs   = require('fs')
+const os   = require('os')
+const path = require('path')
+const cred = require('../../common/credentials')
+
+
+const writeFileBytecodeFileId = (fileId) => {
+  const filePath = path.resolve(os.homedir(), fileId)
+  cred.writeFileJson(fileId, filePath)
+  
+  console.log(`The file id where the bytecode of the contract is saved: ${filePath}`)
+  console.log("Please keep this file safe!")
 }
 
-exports.printTopicInfo     = printTopicInfo 
+exports.writeFileBytecodeFileId = writeFileBytecodeFileId
 
 
 

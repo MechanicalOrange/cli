@@ -482,6 +482,8 @@ program
     .argParser(util.accntParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-g, --config <config-json-file>', "Path to the JSON file that contains the token new configuration.")
     .argParser(util.messageParseString).makeOptionMandatory()) 
+  .addOption(new program.Option('-a, --admin-cred <admin-credentials-file>', "Path to the file that contains the accountID, public and private key of the adminKey account. In the future it can be encrypted.")
+    .argParser(util.messageParseString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
@@ -491,7 +493,7 @@ program
 
     console.log(`Updating a token `) 
     const tokenConfig = util.checkTokenConfig(args.config)
-    const result = await mapi.updateToken(args.tokenId, tokenConfig, args.network, args.cred)
+    const result = await mapi.updateToken(args.tokenId, tokenConfig, args.adminCred, args.network, args.cred)
 
     let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {

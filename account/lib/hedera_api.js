@@ -27,6 +27,18 @@ const { Client, PrivateKey, AccountCreateTransaction, AccountDeleteTransaction, 
 const file        = require('../lib/file')
 const cred = require('../../common/credentials')
 
+
+/**
+ * Sets the operator account for a Hedera network client.
+ *
+ * Reads the account ID and private key from a JSON file and sets them as the operator account
+ * for a client instance for the specified network.
+ *
+ * @param {string} network - The network to set the operator for. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the account ID and private key.
+ * @returns {Client} A Hedera network client instance with the operator account set.
+ * @throws {Error} If an error occurs while setting the operator account.
+ */
 const setOperator = (network, credFile) => {
   try {
     const credentials = cred.readFileJson(credFile)
@@ -55,7 +67,21 @@ const setOperator = (network, credFile) => {
   }
 }
 
-
+/**
+ * Creates a new Hedera account.
+ *
+ * Generates a new private key and creates a new account on the specified network
+ * with the specified initial balance, memo, and maximum automatic token associations.
+ *
+ * @param {number} hbarAmount - The initial balance for the new account, in HBAR.
+ * @param {string} memo - The memo to include with the account creation transaction.
+ * @param {number} maxAssoc - The maximum number of automatic token associations for the new account.
+ * @param {number} maxFee - The maximum transaction fee for the account creation transaction, in HBAR.
+ * @param {string} network - The network to create the account on. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the operator account ID and private key.
+ * @returns {Promise<{newAccount: Object, transactionStatus: string}>} An object with the new account details and the transaction status.
+ * @throws {Error} If an error occurs while creating the account.
+ */
 const createAccount = async (hbarAmount, memo, maxAssoc, maxFee, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
@@ -95,6 +121,22 @@ const createAccount = async (hbarAmount, memo, maxAssoc, maxFee, network, credFi
   }
 }
 
+/**
+ * Creates a new Hedera account using a mnemonic phrase.
+ *
+ * Generates a new account key pair from a mnemonic phrase and creates a new account on the specified network
+ * with the specified initial balance, memo, and maximum automatic token associations.
+ *
+ * @param {number} hbarAmount - The initial balance for the new account, in HBAR.
+ * @param {string} memo - The memo to include with the account creation transaction.
+ * @param {number} maxAssoc - The maximum number of automatic token associations for the new account.
+ * @param {number} maxFee - The maximum transaction fee for the account creation transaction, in HBAR.
+ * @param {number} mnemonicIndex - The index of the account key pair to derive from the mnemonic phrase.
+ * @param {string} network - The network to create the account on. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the operator account ID and private key.
+ * @returns {Promise<{newAccount: Object, mnemonic: {words: string, index: number}, transactionStatus: string}>} An object with the new account details, the mnemonic phrase used to generate the account key pair, and the transaction status.
+ * @throws {Error} If an error occurs while creating the account.
+ */
 const createAccountWithMnemonics = async (hbarAmount, memo, maxAssoc, maxFee, mnemonicIndex, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
@@ -138,6 +180,19 @@ const createAccountWithMnemonics = async (hbarAmount, memo, maxAssoc, maxFee, mn
   }
 }
 
+/**
+ * Deletes a Hedera account and transfers its remaining balance to another account.
+ *
+ * Deletes the account with the specified ID on the specified network and transfers its remaining balance
+ * to the account with the specified ID to transfer the balance to. Returns the transaction status.
+ *
+ * @param {string} accountId - The ID of the account to delete.
+ * @param {string} accountIdToTransferBalance - The ID of the account to transfer the balance to.
+ * @param {string} network - The network to delete the account on. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the operator account ID and private key.
+ * @returns {Promise<string>} The transaction status.
+ * @throws {Error} If an error occurs while deleting the account.
+ */
 const deleteAccount = async (accountId, accountIdToTransferBalance, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
@@ -160,7 +215,24 @@ const deleteAccount = async (accountId, accountIdToTransferBalance, network, cre
 }
 
 
-
+/**
+ * Updates a Hedera account.
+ *
+ * Updates the account with the specified ID on the specified network, modifying its memo, maximum automatic token associations,
+ * staked node ID, staked account ID, and/or staking reward preferences. Returns the transaction status.
+ *
+ * @param {string} accountId - The ID of the account to update.
+ * @param {string} memo - The new memo for the account, or null to leave it unchanged.
+ * @param {number} maxAssoc - The new maximum number of automatic token associations for the account, or null to leave it unchanged.
+ * @param {string} stakedNodeId - The ID of the node to stake the account to, or null to leave it unchanged.
+ * @param {string} stakedAccountId - The ID of the account to stake the account to, or null to leave it unchanged.
+ * @param {string} declineStaking - "yes" to decline staking rewards, "no" to accept staking rewards, or null to leave it unchanged.
+ * @param {number} maxFee - The maximum transaction fee for the account update transaction, in HBAR.
+ * @param {string} network - The network to update the account on. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the operator account ID and private key.
+ * @returns {Promise<string>} The transaction status.
+ * @throws {Error} If an error occurs while updating the account.
+ */
 const updateAccount = async (accountId, memo, maxAssoc, stakedNodeId, stakedAccountId, declineStaking, maxFee, network, credFile) => {
   try {
     const operator = setOperator(network, credFile) 
@@ -201,7 +273,17 @@ const updateAccount = async (accountId, memo, maxAssoc, stakedNodeId, stakedAcco
   }
 }
 
-
+/**
+ * Gets the balance of a Hedera account.
+ *
+ * Gets the balance of the account with the specified ID on the specified network.
+ *
+ * @param {string} accountId - The ID of the account to get the balance for.
+ * @param {string} network - The network to get the account balance on. Must be either "main" or "test".
+ * @param {string} credFile - The path to the JSON file containing the operator account ID and private key.
+ * @returns {Promise<BigNumber>} The balance of the account, in HBAR.
+ * @throws {Error} If an error occurs while getting the account balance.
+ */
 const getAccountBalance = async (accountId, network, credFile) => {
   try {
     const operator = setOperator(network, credFile)
@@ -217,7 +299,17 @@ const getAccountBalance = async (accountId, network, credFile) => {
   }
 }
 
-
+/**
+ * Transfers a specified amount of cryptocurrency (Hbar) from one account to another on the Hedera network.
+ *
+ * @async
+ * @param {string} receiverAccntId - The account ID of the receiver.
+ * @param {number} amountHbar - The amount of Hbar to transfer.
+ * @param {string} network - The network on which the transfer is to take place.
+ * @param {string} credFile - The path to a JSON file containing the credentials necessary for the transaction.
+ * @throws {Error} Throws an error if the transaction fails.
+ * @returns {string} Returns the status of the transaction.
+ */
 const transferCrypto = async (receiverAccntId, amountHbar, network, credFile) =>  {
   try {
     const credentials = cred.readFileJson(credFile)
@@ -238,7 +330,16 @@ const transferCrypto = async (receiverAccntId, amountHbar, network, credFile) =>
   }
 }
 
-
+/**
+ * Retrieves the account information for a given account ID on the Hedera network.
+ *
+ * @async
+ * @param {string} accountId - The account ID to retrieve information for.
+ * @param {string} network - The network on which to retrieve the information.
+ * @param {string} credFile - The path to a JSON file containing the credentials necessary for the query.
+ * @throws {Error} Throws an error if the query fails.
+ * @returns {Promise<AccountInfo>} Returns a Promise that resolves to the account information object.
+ */
 const getAccountInfo = async (accountId, network, credFile) => {
   try {
     const operator = setOperator(network, credFile)
@@ -253,6 +354,13 @@ const getAccountInfo = async (accountId, network, credFile) => {
   }
 }
 
+/**
+ * Generates a new mnemonic phrase and the corresponding private and public keys for the MyHbarWallet app.
+ *
+ * @async
+ * @throws {Error} Throws an error if the keys cannot be generated.
+ * @returns {Promise<{publicKeyMhwString: string, privateKeyMhwString: string, mnemonicSpaceSeparatedString: string, mnemonicIndex: number}>} Returns a Promise that resolves to an object containing the public and private keys, the mnemonic phrase, and the index for the MyHbarWallet.
+ */
 //const MyHbarWalletIndex = 1099511627775
 const MyHbarWalletIndex = 0
 
@@ -273,6 +381,14 @@ const generateMnemonicAndKeysAssociatedMyHbarWallet = async () => {
   return result 
 }
 
+/**
+ * Reconstructs the private and public keys for the MyHbarWallet app from a provided mnemonic phrase.
+ *
+ * @async
+ * @param {string} mnemonicSpaceSeparatedString - The mnemonic phrase to use for key reconstruction.
+ * @throws {Error} Throws an error if the keys cannot be reconstructed.
+ * @returns {Promise<{publicKeyMhwString: string, privateKeyMhwString: string, mnemonicSpaceSeparatedString: string, mnemonicIndex: number}>} Returns a Promise that resolves to an object containing the public and private keys, the mnemonic phrase, and the index for the MyHbarWallet.
+ */
 const reconstructKeysFromMnemonicMyHbarWallet = async (mnemonicSpaceSeparatedString) => {
   let mnemonic = await Mnemonic.fromString(mnemonicSpaceSeparatedString)
   console.log(mnemonic)
@@ -290,6 +406,15 @@ const reconstructKeysFromMnemonicMyHbarWallet = async (mnemonicSpaceSeparatedStr
   return result
 }
 
+
+/**
+ * Generates a new mnemonic phrase and the corresponding private and public keys for the Mechanical Orange app.
+ *
+ * @async
+ * @param {number} index - The index to derive the private key from. If null, defaults to the Mechanical Orange index.
+ * @throws {Error} Throws an error if the keys cannot be generated.
+ * @returns {Promise<{publicKeyMO: Ed25519PublicKey, privateKeyMO: Ed25519PrivateKey, mnemonicSpaceSeparatedString: string, mnemonicIndex: number}>} Returns a Promise that resolves to an object containing the public and private keys, the mnemonic phrase, and the index for the Mechanical Orange app.
+ */
 const MechanicalOrangeIndex = 1233217899870
 
 const generateMnemonicAndKeysAssociated = async (index) => {
@@ -314,7 +439,15 @@ const generateMnemonicAndKeysAssociated = async (index) => {
   return result
 }
 
-
+/**
+ * Reconstructs the private and public keys for the Mechanical Orange app from a provided mnemonic phrase.
+ *
+ * @async
+ * @param {string} mnemonicSpaceSeparatedString - The mnemonic phrase to use for key reconstruction.
+ * @param {number} index - The index to derive the private key from. If null, defaults to the Mechanical Orange index.
+ * @throws {Error} Throws an error if the keys cannot be reconstructed.
+ * @returns {Promise<{publicKeyMO: Ed25519PublicKey, privateKeyMO: Ed25519PrivateKey, mnemonicSpaceSeparatedString: string, mnemonicIndex: number}>} Returns a Promise that resolves to an object containing the public and private keys, the mnemonic phrase, and the index for the Mechanical Orange app.
+ */
 const reconstructKeysFromMnemonic = async (mnemonicSpaceSeparatedString, index) => {
   let mnemonic = await Mnemonic.fromString(mnemonicSpaceSeparatedString)
   const rootPrivateKey = await mnemonic.toPrivateKey();

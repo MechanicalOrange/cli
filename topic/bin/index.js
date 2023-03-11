@@ -31,6 +31,8 @@ const mapi    = require('../lib/hedera_api')
 const util    = require('../lib/utils')
 const file    = require('../lib/file')
 
+const ccheck  = require('../../common/cmd_checker')
+
 
 program
   .name("topic")
@@ -40,15 +42,15 @@ program
 program
   .command('create')
   .addOption(new program.Option('-m, --memo [memo]', 'Memo of the topic. Default value is empty string "".')
-    .argParser(util.memoParseString).default("")) 
+    .argParser(ccheck.checkHederaMemo).default("")) 
   .addOption(new program.Option('-a, --admin-file [admin-file]', 'The admin key is the private key from the admin-file. By default no admin key is set.')
-    .argParser(util.messageParseString).default(null)) 
+    .argParser(ccheck.checkString).default(null)) 
   .addOption(new program.Option('-s, --submit-file [submit-file]', 'The submit key is the private key from the submit-file. By default no submit key is set.')
-    .argParser(util.messageParseString).default(null)) 
+    .argParser(ccheck.checkString).default(null)) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Create a HCS topic. Topic can have a memo and is created on testnet or mainnet. The admin key must be identical with the credential key.')
   .action(async (args) => {
 
@@ -71,11 +73,11 @@ program
 program
   .command('delete')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Delete the topic with the id topic-id.')
   .action(async (args) => {
 
@@ -100,17 +102,17 @@ program
 program
   .command('update')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --memo [memo]', 'The new memo of the topic. By default the memo is not changed.')
-    .argParser(util.memoParseString).default("")) 
+    .argParser(ccheck.checkHederaMemo).default("")) 
   .addOption(new program.Option('-a, --admin-file [admin-file]', 'The new admin key is the private key from the admin-file. By default the admin key is not changed.')
-    .argParser(util.messageParseString).default(null)) 
+    .argParser(ccheck.checkString).default(null)) 
   .addOption(new program.Option('-s, --submit-file [submit-file]', 'The new submit key is the private key from the submit-file. By default the submit key is not changed.')
-    .argParser(util.messageParseString).default(null)) 
+    .argParser(ccheck.checkString).default(null)) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Update a HCS topic. The memo, the admin key and the submit key can be modified jon testnet or mainnet.')
   .action(async (args) => {
 
@@ -134,11 +136,11 @@ program
 program
   .command('get-info')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Get full info of the topic with the id topic-id.')
   .action(async (args) => {
 
@@ -153,13 +155,13 @@ program
 program
   .command('send-message')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', 'The account Id.')
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --message <message>', 'Message sent. Use quotes for multiple words. Default value is empty string "".')
-    .argParser(util.messageParseString).default("")) 
+    .argParser(ccheck.checkString).default("")) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Send a message to the topic.')
   .action(async (args) => {
 
@@ -182,13 +184,13 @@ program
 program
   .command('send-file')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-f, --file <path-to-file> ', "The file that contains the message that is going to be sent. This is useful for long messages.")
-    .argParser(util.messageParseString).makeOptionMandatory())
+    .argParser(ccheck.checkString).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Send the content of a file as a message to the topic. The file size must be smaller than 1024 bytes.')
   .action(async (args) => {
 
@@ -213,15 +215,15 @@ program
 program
   .command('send-signature')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', 'The account Id.')
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --memo <memo>', 'Memo of the timestamp. Default value is empty string "".')
-    .argParser(util.messageParseString).default("")) 
+    .argParser(ccheck.checkString).default("")) 
   .addOption(new program.Option('-f, --file <path-to-file> ', 'File sent that has the SHA3-256 signature computed and sent to the network.')
-    .argParser(util.messageParseString).makeOptionMandatory())
+    .argParser(ccheck.checkString).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Generate the SHA3-256 hash and send it to the topic. The format of the message is "message-memo sha-signature".')
   .action(async (args) => {
 
@@ -251,13 +253,13 @@ program.parse(process.argv)
 program
   .command('clear-key')
   .addOption(new program.Option('-i, --topic-id <shard.realm.account>', "The topic Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-k, --key <key-type>', 'The key to be cleared.')
     .choices(['admin', 'submit']).makeOptionMandatory())
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Create a HCS topic. Topic can have a memo and is created on testnet or mainnet.')
   .action(async (args) => {
 

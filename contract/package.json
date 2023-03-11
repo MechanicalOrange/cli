@@ -1,5 +1,5 @@
 {
-  "name": "token-cli",
+  "name": "contract",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,12 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "token": "./bin/index.js"
+    "contract": "./bin/index.js"
   },
   "author": "MechanicalOrange",
   "license": "MIT",
   "dependencies": {
     "@hashgraph/sdk": "^2.19.2",
-    "commander": "^9.3.0"
+    "commander": "^9.3.0",
+    "shelljs": "^0.8.5"
   }
 }

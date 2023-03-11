@@ -23,11 +23,16 @@ SOFTWARE.
 */
 
 const fs   = require('fs')
-const os   = require('os')
-const path = require('path')
 
 
-
+/**
+ * Writes a JSON object to a file on disk.
+ *
+ * The JSON object is serialized to a string and written to the specified path on disk.
+ *
+ * @param obj The JSON object to write.
+ * @param path The path to the file where the JSON object will be written.
+ */
 const writeFileJson = (obj, path) => {
   try {
     fs.writeFileSync(path, JSON.stringify(obj, null, 2), 'utf8');
@@ -38,6 +43,14 @@ const writeFileJson = (obj, path) => {
   }
 }
 
+/**
+ * Reads a JSON object from a file on disk.
+ *
+ * The JSON object is deserialized from a string in the file at the specified path on disk.
+ *
+ * @param path The path to the file where the JSON object is stored.
+ * @return The JSON object from the file.
+ */
 const readFileJson = (path) => {
   try {
     const data = fs.readFileSync(path);

@@ -28,6 +28,14 @@ const path = require('path')
 const cred = require('../../common/credentials')
 
 
+/**
+ * Writes a topic object to a file.
+ *
+ * This function takes a topic object and writes it to a file in JSON format. The file is saved in the user's home directory with the name of the topic's topicId. It also logs a message to the console to indicate that the file has been saved and encourages the user to keep the file safe.
+ *
+ * @param topic An object containing information about the topic.
+ * @return void
+ */
 const writeFileTopic = (topic) => {
   const filePath = path.resolve(os.homedir(), topic.topicId)
   cred.writeFileJson(topic, filePath)
@@ -36,6 +44,14 @@ const writeFileTopic = (topic) => {
   console.log("Please keep this file safe!")
 }
 
+/**
+ * Transforms a file into a message.
+ *
+ * This function takes a file path as an input, it reads the contents of the file and returns it as a string. It checks the file size is less than 1024 bytes, if not it throws an error and the process exits with code 1. If the file does not exist, it throws an error and the process exits with code 1
+ *
+ * @param filePath A string representing the path of the file to be read.
+ * @return {string} The file content as string
+ */
 const transformFileIntoMessage = (filePath) => {
 
   try {
@@ -60,6 +76,15 @@ const transformFileIntoMessage = (filePath) => {
   }
 }
 
+/**
+ * Generates a sha3-256 hash for a file.
+ *
+ * This function takes a file path as input, reads the contents of the file and generates a sha3-256 hash of the file contents.
+ * It logs a message to the console to indicate that the hash is being computed and another message to indicate that the hash has been computed. If the file does not exist, it throws an error and the process exits with code 1
+ *
+ * @param filePath A string representing the path of the file to be hashed.
+ * @return {string} The sha3-256 hash of the file content as hexadecimal string
+ */
 const generateSHA256Hash = (filePath) => {
  // Install and run at command line sha3-256 
  //  sudo apt install libdigest-sha3-perl

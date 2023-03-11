@@ -28,6 +28,13 @@ const path = require('path')
 const cred = require('../../common/credentials')
 
 
+/**
+ * Writes an account object to a file on disk.
+ *
+ * The account object is written to a file at the specified path on disk. The file contains the account ID and keys for the account.
+ *
+ * @param account The account object to write.
+ */
 const writeFileAccount = (account) => {
   const filePath = path.resolve(os.homedir(), account.accountId)
   cred.writeFileJson(account, filePath)
@@ -36,6 +43,14 @@ const writeFileAccount = (account) => {
   console.log("Please keep this file safe!")
 }
 
+/**
+ * Writes a mnemonic object to a file on disk.
+ *
+ * The mnemonic object is written to a file at the specified path on disk. The file contains the words and index of the mnemonic.
+ *
+ * @param account The account associated with the mnemonic.
+ * @param mnemonic The mnemonic object to write.
+ */
 const writeFileMnemonic = (account, mnemonic) => {
   const filePath = path.resolve(os.homedir(), account.accountId + ".mnm")
   
@@ -50,6 +65,14 @@ const writeFileMnemonic = (account, mnemonic) => {
   console.log("Please keep this file safe!")
 }
 
+/**
+ * Reads a mnemonic object from a file on disk.
+ *
+ * The mnemonic object is read from a file at the specified path on disk. The file is expected to contain the words and index of the mnemonic, separated by a newline character.
+ *
+ * @param pathMnemonicFile The path to the file containing the mnemonic object.
+ * @return The mnemonic object read from the file.
+ */
 const readFileMnemonic = (pathMnemonicFile) => {
   const allFileContents = fs.readFileSync(pathMnemonicFile, 'utf-8');
   let mnemonic = allFileContents.split(/\r?\n/)

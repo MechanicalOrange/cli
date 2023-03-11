@@ -23,74 +23,14 @@ SOFTWARE.
 */
 
 
-const accntParseString = (value) => {
-  const words = value.split('.')
-  if (words.length !== 3) {
-    console.error("Error! Account cannot have more than 3 fields or it is not of the form x.y.z")
-    process.exit(1)
-  }
-
-  for (word of words) {
-    if (!/^[0-9]+$/.test(word)) {
-      console.error(`The field ${word} is not a number. The account must be of form x.y.z, where x,y,z are numbers.`)
-      process.exit(1)
-    }
-  }
-  return value
-}
-
-const memoParseString = (value) => {
-  const kMaxMemoLengh    = 100 
-  if (value.length > kMaxMemoLengh) {
-    console.error(`Error! Memo cannot be more than ${kMaxMemoLengh} chars.`)
-    process.exit(1)
-  }
-  return value
-}
-
-const assocParseInt = (value) => {
-  const parsedValue = parseInt(value, 10)
-  if (isNaN(parsedValue)) {
-    console.error("Error! Not a number ")
-    process.exit(1)
-  }
-  else if( parsedValue < 0) {
-    console.error("Error! It must be a positive number ")
-    process.exit(1)
-  }
-  else if( parsedValue > 1000) {
-    const kMaxAssociations = 1000
-    console.error(`Error! Maximum number of token associations  is ${kMaxAssociations}!`)
-    process.exit(1)
-  }
-  return parsedValue
-}
-
-const isPositiveInteger = (str) => {
-  if (typeof str !== 'string') {
-    return false;
-  }
-  const num = Number(str);
-  if (Number.isInteger(num) && num > 0) {
-    return true;
-  }
-  return false;
-}
-
-const hbarParseFloat = (value) => {
-  const parsedValue = parseFloat(value)
-  if (isNaN(parsedValue)) {
-    console.error("Error! Not a number ")
-    process.exit(1)
-  }
-  else if( parsedValue < 0) {
-    console.error("Error! It must be a positive number ")
-    process.exit(1)
-  }
-  return parsedValue
-}
-
-
+/**
+ * Prints information about an account to the console.
+ *
+ * This function takes an object containing information about an account and prints the various fields of the object to the console. The fields that are printed include the account ID, public key, balance, live hashes, tokens, NFTs, memo, expiration time, proxy stake, network, Ethereum nonce, and staking information.
+ *
+ * @param accountInfo An object containing information about an account.
+ * @return void
+ */
 const printAccountInfo = (accountInfo) => {
 //  console.log(accountInfo)
   console.log("The account ID of the account the information was requested for: ", accountInfo.accountId.toString())
@@ -119,30 +59,22 @@ const printAccountInfo = (accountInfo) => {
 }
 
 
+/**
+ * Prints staking information about an account to the console.
+ *
+ * This function takes an object containing information about an account and prints the fields related to staking information to the console. The fields that are printed include the proxy account ID and staking info.
+ *
+ * @param accountInfo An object containing information about an account.
+ * @return void
+ */
 const printAccountStakingInfo = (accountInfo) => {
   console.log("The Account ID of the account to which this account is proxy staked. If proxyAccountID is null, or is an invalid account, or is an account that isn't a node, then this account is automatically proxy staked to a node chosen by the network, but without earning payments:", accountInfo.proxyAccountId)    
   console.log("Staking metadata for an account. This includes staking period start, pending reward, accounts staked to this account, and the account ID or node ID. Reference HIP-406:", accountInfo.stakingInfo.toString())   
 }
 
 
-const messageParseString = (value) => {
-  if (Object.prototype.toString.call(value) === '[object String]') {
-    return value
-  }
-  else {
-    console.error(`Error! ${value} is not a string!!`)
-    process.exit(1)
-  }
-}
-
-exports.accntParseString        = accntParseString
-exports.assocParseInt           = assocParseInt   
-exports.isPositiveInteger       = isPositiveInteger
-exports.hbarParseFloat          = hbarParseFloat  
-exports.memoParseString         = memoParseString 
 exports.printAccountInfo        = printAccountInfo
 exports.printAccountStakingInfo = printAccountStakingInfo
-exports.messageParseString      = messageParseString
 
 
 

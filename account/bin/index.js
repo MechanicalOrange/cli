@@ -31,6 +31,8 @@ const mapi    = require('../lib/hedera_api')
 const file    = require('../lib/file')
 const util    = require('../lib/utils')
 
+const ccheck  = require('../../common/cmd_checker')
+
 
 program
   .name("account")
@@ -41,17 +43,17 @@ program
 program
   .command('create')
   .addOption(new program.Option('-a, --amount <hbar>', "Initial amount of hbar in account.")
-    .argParser(util.hbarParseFloat).default(1)) 
+    .argParser(ccheck.checkFloatNumber).default(1)) 
   .addOption(new program.Option('-m, --memo <memo>', "Memo of the account.")
-    .argParser(util.memoParseString).default("")) 
+    .argParser(ccheck.checkHederaMemo).default("")) 
   .addOption(new program.Option('-s, --assoc <number-associations>', "Number of token associated with this account.")
-    .argParser(util.assocParseInt).default(0))  
+    .argParser(ccheck.checkMaxTokenAssociations).default(0))  
   .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
-    .argParser(util.hbarParseFloat).makeOptionMandatory())  
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Create an account. Account can have an initial amount of hbar, a memo, and a number of token associations. Account is created on testnet or mainnet.')
   .action(async (args) => {
 
@@ -74,19 +76,19 @@ program
 program
   .command('create-with-mnemonic')
   .addOption(new program.Option('-a, --amount <hbar>', "Initial amount of hbar in account.")
-    .argParser(util.hbarParseFloat).default(1)) 
+    .argParser(ccheck.checkFloatNumber).default(1)) 
   .addOption(new program.Option('-m, --memo <memo>', "Memo of the account.")
-    .argParser(util.memoParseString).default("")) 
+    .argParser(ccheck.checkHederaMemo).default("")) 
   .addOption(new program.Option('-s, --assoc <number-associations>', "Number of token associated with this account.")
-    .argParser(util.assocParseInt).default(0))  
+    .argParser(ccheck.checkMaxTokenAssociations).default(0))  
   .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
-    .argParser(util.hbarParseFloat).makeOptionMandatory())  
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-p, --mnemonic-index <integer>', "If set, the mnemonic-index must be saved with the mnemonic phrase, without it the private key will not be properly reconstructed.")
-    .argParser(util.hbarParseFloat).default(null))  
+    .argParser(ccheck.checkFloatNumber).default(null))  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Create an account with mnemonics. Account can have an initial amount of hbar, a memo, and a number of token associations. Account is created on testnet or mainnet. ')
   .action(async (args) => {
 
@@ -110,14 +112,14 @@ program
 program
   .command('delete')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', 'The account Id that is deleted.')
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-d, --account-id-to-transfer <shard.realm.account>', 'The account Id.')
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
-  .description('Delete an account. The account funds are transferred to account-id-to-transfer. Account is created on testnet or mainnet.')
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
+  .description('Delete an account. The account funds are transferred to account-id-to-transfer. ')
   .action(async (args) => {
 
     console.log(`Deleting an account`) 
@@ -148,23 +150,23 @@ program
 program
   .command('update')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', 'The account Id.')
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --memo [memo]', 'Memo of the account.')
-    .argParser(util.memoParseString).default(null)) 
+    .argParser(ccheck.checkHederaMemo).default(null)) 
   .addOption(new program.Option('-s, --assoc <number-associations>', 'Number of token associated with this account.')
-    .argParser(util.assocParseInt).default(null))  
+    .argParser(ccheck.checkMaxTokenAssociations).default(null))  
   .addOption(new program.Option('-j, --staked-node-id <node-id>', 'Hashgraph node this account is staked to.')
-    .argParser(util.assocParseInt).default(null))  
+    .argParser(ccheck.checkMaxTokenAssociations).default(null))  // FIXME this should be positive int
   .addOption(new program.Option('-k, --staked-account-id <shard.realm.account>', 'The account Id this account is staked to.')
-    .argParser(util.accntParseString).default(null)) 
+    .argParser(ccheck.checkHederaAccount).default(null)) 
   .addOption(new program.Option('-d, --decline-staking [yes/no], default "no"', 'If set to "yes", the account will not receive staking rewards.')
     .choices(['yes', 'no']).default(null)) 
   .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
-    .argParser(util.hbarParseFloat).makeOptionMandatory())  
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Update an account. Account can have a new memo, new number of token associations, staked-account or staked node, can decline staking. Account can be updated on testnet or mainnet.')
   .action(async (args) => {
 
@@ -200,13 +202,13 @@ program
 program
   .command('transfer-hbar')
   .addOption(new program.Option('-a, --amount <hbar>', "Amount of hbar to be transferred.")
-    .argParser(util.hbarParseFloat).makeOptionMandatory()) 
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory()) 
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Transfer hbar to another account.')
   .action(async (args) => {
 
@@ -229,11 +231,11 @@ program
 program
   .command('get-balance')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Get the account balance.')
   .action(async (args) => {
 
@@ -247,11 +249,11 @@ program
 program
   .command('get-info')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Get the account info.')
   .action(async (args) => {
 
@@ -266,11 +268,11 @@ program
 program
   .command('get-stacking-info')
   .addOption(new program.Option('-i, --account-id <shard.realm.account>', "The account Id.")
-    .argParser(util.accntParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Get the account stacking info.')
   .action(async (args) => {
 
@@ -284,7 +286,7 @@ program
 program
   .command('reconstruct-key-from-myhbarwallet')
   .addOption(new program.Option('-m, --mnemonic <mnemonic-file>', "Path to the file that contains the mnemonic words separated by space.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Generates the private and public key for the mnemonics compatible with MyHbarWallet. The account id is not known, therefore the credential file generated has the account id set to 0.0.o.')
   .action(async (args) => {
     const mnemonicInfo = file.readFileMnemonic(args.mnemonic)
@@ -305,7 +307,7 @@ program
 program
   .command('reconstruct-key-from-mnemonic')
   .addOption(new program.Option('-m, --mnemonic <mnemonic-file>', "Path to the file that contains the mnemonic words separated by space.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Generates the private and public key for the mnemonics with the index that is present in the mnemonics file. The account id is not known, therefore the credential file generated has the account id set to 0.0.o.')
   .action(async (args) => {
     const mnemonicInfo = file.readFileMnemonic(args.mnemonic)
@@ -371,7 +373,7 @@ program
 program
   .command('test-json')
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
-    .argParser(util.messageParseString).makeOptionMandatory()) 
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('test JSON file')
   .action(async (args) => {
 
@@ -382,6 +384,7 @@ program
     cl(td)
 
   })
+
 
 program.parse(process.argv)
 
