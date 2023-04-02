@@ -1,10 +1,7 @@
 {
-  "initialBalance"        : "1",
-  "adminAccount_NOT_USED" : "0.0.48154691",
-  "adminKey"              : "302e020100300506032b65700422042099593cdd7a58b40ca2463b9b5b307a426fb98cb506f228434d0c63655f7cd861",
-  "memo"                  : "This is a test contract2",
-  "stakedNodeId"          : "3",
-  "stakedAccountId_NOT_NEEDED"       : "0.0.2",
+  "memo"                  : "This is an updated test contract",
+  "stakedNodeId"          : "4",
+  "stakedAccountId_NOT_NEEDED"       : "0.0.3",
   "declineStaking"        : "false", 
-  "maxAutomaticTokenAssociations" : "0"
+  "maxAutomaticTokenAssociations" : "1"
 }

@@ -63,7 +63,7 @@ program
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-m, --memo <memo>', "Memo of the account.")
     .argParser(ccheck.checkHederaMemo).default("")) 
-  .addOption(new program.Option('-f, --max-fee <hbar>', "Maximum transaction fee to be paid for creating an account.")
+  .addOption(new program.Option('-m, --max-fee <hbar>', "Maximum transaction fee to be paid for storing the file.")
     .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
@@ -98,10 +98,14 @@ program
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-g, --max-gas <unit of gas>', "Maximum units of gas allocated for this transaction.")
     .makeOptionMandatory())  // FIXME check that it is integer
+  .addOption(new program.Option('-m, --max-fee <hbar>', "Maximum transaction fee to be paid for deploying the contract.")
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-o, --config <config-json-file>', "Path to the JSON file that contains the contract configuration.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-z, --admin <admin-file>', "Path to the file that contains the accountID, public and private key of the admin account. In the future it can be encrypted.")
+    .argParser(ccheck.checkString).default("")) 
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Deploy a contract.')
@@ -122,7 +126,7 @@ program
     }
 
     const contractConfig = util.checkContractConfig(args.config)
-    const result = await mapi.deployContract(args.fileId, solParam, args.maxGas, contractConfig, args.network, args.cred)
+    const result = await mapi.deployContract(args.fileId, solParam, args.maxGas, args.maxFee, contractConfig, args.network, args.admin, args.cred)
 
     let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {
@@ -145,10 +149,12 @@ program
     .argParser(ccheck.checkHederaAccount).default("null")) 
   .addOption(new program.Option('-d, --account-id-to-transfer <shard.realm.account>', 'The account Id that receives the funds of the contract .')
     .argParser(ccheck.checkHederaAccount).default("null"))  
-  .addOption(new program.Option('-o, --config <config-json-file>', "Path to the JSON file that contains the token configuration.")
+  .addOption(new program.Option('-o, --config <config-json-file>', "Path to the JSON file that contains the contract configuration.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-z, --admin <admin-file>', "Path to the file that contains the accountID, public and private key of the admin account. In the future it can be encrypted.")
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Delete a contract. The funds are transferred to account-id-to-transfer or the contract-id-to-transfer.')
@@ -157,7 +163,7 @@ program
     console.log('Deleting a contract.') 
 
     const contractConfig = util.checkContractConfig(args.config)
-    const result = await mapi.deleteContract(args.contractId, args.contractIdToTransfer, args.accountIdToTransfer, contractConfig, args.network, args.cred)
+    const result = await mapi.deleteContract(args.contractId, args.contractIdToTransfer, args.accountIdToTransfer, contractConfig, args.network, args.admin, args.cred)
 
     let exitStatus = null
     if (result.transactionStatus === "SUCCESS") {
@@ -286,12 +292,16 @@ program
 
 program
   .command('update-info')
-  .addOption(new program.Option('-i, --contract-id <shard.realm.account>', 'The contract Id that contains the deployed contract .')
+  .addOption(new program.Option('-i, --contract-id <shard.realm.account>', 'The contract Id that contains the updated contract .')
     .argParser(ccheck.checkHederaAccount).makeOptionMandatory()) 
   .addOption(new program.Option('-o, --config <config-json-file>', "Path to the JSON file that contains the token configuration.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
+  .addOption(new program.Option('-m, --max-fee <hbar>', "Maximum transaction fee to be paid for deploying the contract.")
+    .argParser(ccheck.checkFloatNumber).makeOptionMandatory())  
   .addOption(new program.Option('-n, --network <type>', 'Network type: mainnet or testnet')
     .choices(['main', 'test']).makeOptionMandatory())
+  .addOption(new program.Option('-z, --admin <admin-file>', "Path to the file that contains the accountID, public and private key of the admin account. In the future it can be encrypted.")
+    .argParser(ccheck.checkString).makeOptionMandatory()) 
   .addOption(new program.Option('-c, --cred <credentials-file>', "Path to the file that contains the accountID, public and private key. In the future it can be encrypted.")
     .argParser(ccheck.checkString).makeOptionMandatory()) 
   .description('Update info of the contract.')
@@ -300,7 +310,7 @@ program
     console.log(`Updating the info of the contract.`) 
 
     const contractConfig = util.checkContractConfig(args.config)
-    const result = await mapi.updateInfo(args.contractId, contractConfig, args.network, args.cred)
+    const result = await mapi.updateInfo(args.contractId, contractConfig, args.maxFee, args.network, args.admin, args.cred)
     
     let exitStatus = null
     if (result !== null && result.transactionStatus === "SUCCESS") {

@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 
-const { AccountId, Client, PrivateKey, AccountCreateTransaction, AccountInfoQuery, AccountBalanceQuery, TransferTransaction, KeyList, Hbar, BigNumber, FileCreateTransaction, FileAppendTransaction, ContractCreateTransaction, ContractFunctionParameters, ContractCallQuery, ContractExecuteTransaction, ContractByteCodeQuery, ContractDeleteTransaction, ContractInfoQuery, ContractUpdateTransaction} = require("@hashgraph/sdk");
+const { AccountId, Client, PrivateKey, PublicKey, AccountCreateTransaction, AccountInfoQuery, AccountBalanceQuery, TransferTransaction, KeyList, Hbar, BigNumber, FileCreateTransaction, FileAppendTransaction, ContractCreateTransaction, ContractFunctionParameters, ContractCallQuery, ContractExecuteTransaction, ContractByteCodeQuery, ContractDeleteTransaction, ContractInfoQuery, ContractUpdateTransaction} = require("@hashgraph/sdk");
 
 const fs    = require("fs");
 const shell = require('shelljs');
@@ -102,9 +102,6 @@ const compileContract = (pathContractSol, pathDirContractBin) => {
     shell.echo('Error: solc failed!');
     shell.exit(1);
   }
-
-
-    debugger
   let pathArray = pathContractSol.split("/")
   let contractName = pathArray[pathArray.length - 1]
   let contractNameNoExtension = contractName.split(".")[0]
@@ -131,7 +128,6 @@ const compileContract = (pathContractSol, pathDirContractBin) => {
  * @throws {Error} If an error occurs during the transaction.
  */
 const storeContract = async (pathContractBin, memo, maxFee, network, credFile) => {
-  //cl(pathContractBin, memo, maxFee, network, credFile)
 
   let  bytecodeFileId = null 
   let  bytecodeFileIdAsString = null
@@ -218,9 +214,10 @@ const storeContract = async (pathContractBin, memo, maxFee, network, credFile) =
  * @returns {Object} An object containing the contract ID and transaction status.
  * @throws {Error} If an error occurs during the transaction.
  */
-const deployContract = async (bytecodeFileId, solParam, maxGas, contractCfg, network, credFile) => {
+const deployContract = async (bytecodeFileId, solParam, maxGas, maxFee, contractCfg, network, adminFile, credFile) => {
   try {
     debugger
+    //cl("max-fee = ", maxFee)
 
     const operator = setOperator(network, credFile) 
     // Instantiate the contract instance
@@ -229,7 +226,7 @@ const deployContract = async (bytecodeFileId, solParam, maxGas, contractCfg, net
       .setBytecodeFileId(bytecodeFileId)
       //Set the gas to instantiate the contract
       .setGas(maxGas) 
-      //Provide the constructor parameters for the contract
+	    .setMaxTransactionFee(maxFee)  
 
     if (contractCfg.stakedNodeId    != undefined  && contractCfg.stakedAccountId != undefined) {
       console.error("Error! Both stakeNodeId and stakeAccountId are defined, only one should be!")
@@ -239,9 +236,18 @@ const deployContract = async (bytecodeFileId, solParam, maxGas, contractCfg, net
     if (solParam !== null) {
       contractTx.setConstructorParameters(solParam);
     }
-    if (contractCfg.initialBalance  != undefined) contractTx.setInitialBalance(new Hbar(contractCfg.initialBalance)) 
+    if (contractCfg.initialBalance  != undefined) {
+      contractTx.setInitialBalance(new Hbar(contractCfg.initialBalance)) 
+    }
 
-    if (contractCfg.adminKey        != undefined) contractTx.setAdminKey(PrivateKey.fromString(contractCfg.adminKey).publicKey)
+    let adminPublicKey = null 
+    let adminPrivateKey = null 
+    if (adminFile !== "") {
+      const adminCredentials = cred.readFileJson(adminFile)
+      adminPublicKey  = adminCredentials.publicKey
+      adminPrivateKey = adminCredentials.privateKey
+    }
+    if (adminPublicKey              != null) contractTx.setAdminKey(PublicKey.fromString(adminPublicKey))
 
     if (contractCfg.memo            != undefined) contractTx.setContractMemo(contractCfg.memo)
     if (contractCfg.stakedNodeId    != undefined) contractTx.setStakedNodeId(contractCfg.stakedNodeId)
@@ -250,12 +256,11 @@ const deployContract = async (bytecodeFileId, solParam, maxGas, contractCfg, net
     if (contractCfg.maxAutomaticTokenAssociations != undefined) contractTx.setMaxAutomaticTokenAssociations(contractCfg.maxAutomaticTokenAssociations)
 
     contractTx.freezeWith(operator)
-    debugger
 
     let contractResponse = null
     // Sign with the private admin key if the contract has admin key
-    if (contractCfg.adminKey        != undefined) {
-      const signedTransaction = await contractTx.sign(PrivateKey.fromString(contractCfg.adminKey));
+    if (adminPrivateKey        != null) {
+      const signedTransaction = await contractTx.sign(PrivateKey.fromString(adminPrivateKey));
       contractResponse = await signedTransaction.execute(operator)
     }
     else {
@@ -298,12 +303,8 @@ const deployContract = async (bytecodeFileId, solParam, maxGas, contractCfg, net
  * @returns {Object} An object containing the transaction status.
  * @throws {Error} If an error occurs during the transaction.
  */
-const deleteContract = async (contractId, contractIdToTransfer, accountIdToTransfer, contractCfg, network, credFile) => {
+const deleteContract = async (contractId, contractIdToTransfer, accountIdToTransfer, contractCfg, network, adminFile, credFile) => {
   try {
-    //cl(contractId, contractIdToTransfer, accountIdToTransfer, contractCfg, network, credFile)
-
-    //debugger
-
     const operator = setOperator(network, credFile) 
 
     // Instantiate the contract instance
@@ -316,14 +317,15 @@ const deleteContract = async (contractId, contractIdToTransfer, accountIdToTrans
     else if (accountIdToTransfer !== "null") {
       contractTx.setTransferAccountId(accountIdToTransfer)
     }
-    if (contractCfg.adminKey === undefined) {
+    const adminCredentials = cred.readFileJson(adminFile)
+    const adminPrivateKey = adminCredentials.privateKey
+    if (adminPrivateKey === undefined) {
       console.error("Error! The contract needs the adminKey to be deleted!")
       process.exit(1)
     }
     contractTx.freezeWith(operator)
     //Sign with the admin key on the contract
-    const adminKey = PrivateKey.fromString(contractCfg.adminKey)
-    const signTx = await contractTx.sign(adminKey) 
+    const signTx = await contractTx.sign(PrivateKey.fromString(adminPrivateKey)) 
     //Submit the transaction to the Hedera test network
     const contractResponse = await signTx.execute(operator)
 
@@ -543,15 +545,10 @@ const prepareOutputForPrinting = (txnResponse, abiInfo) => {
 
 
 /**
-
     Prepares the events from a Hedera transaction record for printing.
-
     Iterates through the logs in the contractFunctionResult property of the transaction record and converts
-
     their data to a string, then extracts the topics. Returns an array of events as strings.
-
     @param {TransactionRecord} txnRecord - The transaction record to extract events from.
-
     @returns {string[]} An array of events as strings.
 */
 // IMPLEMENTME FIXME
@@ -578,9 +575,7 @@ const prepareEventsForPrinting = (txnRecord) => {
   return eventsAsStringArray
 }
 
-
 /**
-
     Executes a pure/view function of a Solidity smart contract.
     Calls a pure/view function of the specified contract on the Hedera network, and returns the result
     of the function call. If successful, returns an object containing the output of the function call,
@@ -599,14 +594,6 @@ const prepareEventsForPrinting = (txnRecord) => {
 const executeViewPureFunction = async (contractId, functionName, solParam, abiInfo, maxGas, network, credFile) => {
   cl("Execute Pure/View function.")
   const resultQuery = await queryContract(contractId, functionName, solParam, maxGas, network, credFile)
-  /////////////////////////
-  // Get the message from the result
-  // If the return type of `get_message` was `(string[], uint32, string)`
-  // then you'd need to get each field separately using:
-  //      const stringArray = contractCallResult.getStringArray(0);
-  //      const uint32 = contractCallResult.getUint32(1);
-  //      const string = contractCallResult.getString(2);
-  ////////////////////////
   let outputAsStringArray = null
   if (resultQuery.transactionStatus === "SUCCESS") {
     outputAsStringArray = prepareOutputForPrinting(resultQuery.queryResponse, abiInfo) 
@@ -700,9 +687,7 @@ const executeNonPayableFunction = async (contractId, functionName, solParam, abi
   return result;
 }
 
-
 /**
-
     Executes a function on a Solidity smart contract deployed on the Hedera network.
     Determines the state mutability of the function and whether it is payable, and then executes
     the function accordingly. Returns the output of the function and any events emitted by the
@@ -779,7 +764,6 @@ const getByteCode = async (contractId, network, credFile) => {
 }
 
 /**
-
     Retrieves information about a Solidity smart contract deployed on a Hedera network.
     Executes a ContractInfoQuery on the specified network using the provided operator account credentials.
     Returns an object containing the query response and transaction status.
@@ -812,7 +796,6 @@ const getInfo = async (contractId, network, credFile) => {
 
 
 /**
-
     Updates the admin key, memo, staking settings, and automatic token association settings for a
     Solidity smart contract.
     Builds and sends a transaction to update the admin key, memo, staking settings, and automatic token
@@ -825,22 +808,32 @@ const getInfo = async (contractId, network, credFile) => {
     @returns {Object} An object containing the contract response and transaction status.
     @throws {Error} If an error occurs while updating the contract.
 */
-const updateInfo = async (contractId, contractCfg, network, credFile) => {
+
+//FIXME it does not work
+const updateInfo = async (contractId, contractCfg, maxFee, network, adminFile, credFile) => {
   try {
-    //debugger
+    debugger
 
     const operator = setOperator(network, credFile) 
     // Instantiate the contract instance
     const contractTx = await new ContractUpdateTransaction()
       .setContractId(contractId)
+//	    .setMaxTransactionFee(maxFee)  
 
 
     if (contractCfg.stakedNodeId    != undefined  && contractCfg.stakedAccountId != undefined) {
       console.error("Error! Both stakeNodeId and stakeAccountId are defined, only one should be!")
       process.exit(1)
     }
-
-    if (contractCfg.adminKey        != undefined) contractTx.setAdminKey(PrivateKey.fromString(contractCfg.adminKey))
+    let adminPublicKey = null 
+    let adminPrivateKey = null 
+    if (adminFile !== "") {
+      const adminCredentials = cred.readFileJson(adminFile)
+      adminPublicKey = adminCredentials.publicKey
+      adminPrivateKey = adminCredentials.privateKey
+    }
+/*
+    if (contractCfg.adminKey        != undefined) contractTx.setAdminKey(adminPublicKey)
     if (contractCfg.memo            != undefined) contractTx.setContractMemo(contractCfg.memo)
     if (contractCfg.stakedNodeId    != undefined) contractTx.setStakedNodeId(contractCfg.stakedNodeId)
     if (contractCfg.stakedAccountId != undefined) contractTx.setStakedAccountId(contractCfg.stakedAccountId)
@@ -848,11 +841,17 @@ const updateInfo = async (contractId, contractCfg, network, credFile) => {
     if (contractCfg.maxAutomaticTokenAssociations != undefined) contractTx.setMaxAutomaticTokenAssociations(contractCfg.maxAutomaticTokenAssociations)
 
     contractTx.freezeWith(operator)
-    //Sign with the admin key on the contract
-    const adminKey = PrivateKey.fromString(contractCfg.adminKey)
-    const signTx = await contractTx.sign(adminKey) 
-    //Submit the transaction to the Hedera test network
-    const contractResponse = await signTx.execute(operator)
+*/
+    let contractResponse = null
+    // Sign with the private admin key if the contract has admin key
+    if (adminPrivateKey        != null) {
+      const signedTransaction = await contractTx.sign(adminPrivateKey);
+      contractResponse = await signedTransaction.execute(operator)
+    }
+    else {
+      //Submit the transaction to the Hedera test network
+      contractResponse = await contractTx.execute(operator)
+    }
 
     //Get the receipt of the file create transaction
     const contractReceipt = await contractResponse.getReceipt(operator);
